@@ -17,6 +17,12 @@ dependencies {
     testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
 
+java {
+    toolchain {
+        version = JavaLanguageVersion.of(21)
+    }
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
