@@ -22,11 +22,11 @@ dependencyResolutionManagement {
             from(toml("junit-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
-        generate("assertJLibs") {
+        generate("assertJPlatform") {
             from(toml("assertj-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
-        generate("mockitoLibs") {
+        generate("mockitoPlatform") {
             from(toml("mockito-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
