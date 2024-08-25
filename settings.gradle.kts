@@ -17,12 +17,17 @@ dependencyResolutionManagement {
         mavenCentral()
     }
     versionCatalogs {
+        // Testing
         generate("junitPlatform") {
             from(toml("junit-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
         generate("assertJLibs") {
             from(toml("assertj-bom"))
+            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+        }
+        generate("mockitoLibs") {
+            from(toml("mockito-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
     }

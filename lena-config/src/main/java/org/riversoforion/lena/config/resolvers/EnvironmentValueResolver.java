@@ -5,12 +5,13 @@ package org.riversoforion.lena.config.resolvers;
 
 import org.riversoforion.lena.config.ValueResolver;
 
+import java.util.Optional;
+
 public class EnvironmentValueResolver implements ValueResolver {
 
     @Override
-    public String resolveValue(String name) {
+    public Optional<String> resolveValue(String name) {
 
-        // TODO Implement
-        return "";
+        return Optional.ofNullable(System.getenv(name));
     }
 }

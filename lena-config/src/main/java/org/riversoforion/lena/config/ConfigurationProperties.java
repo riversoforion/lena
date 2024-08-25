@@ -5,57 +5,111 @@ package org.riversoforion.lena.config;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class ConfigurationProperties {
 
     private final ConfigurationSource source;
-    private final Map<Class<? extends ConfigurationProperties>, ConfigurationProperties> nested = new HashMap<>();
+    private final Map<String, ConfigurationProperties> nested = new HashMap<>();
     private ValueConverter valueConverter = new DefaultValueConverter();
+    private final Map<String, String> defaults = new HashMap<>();
+    private Function<String, String> defaultResolver;
 
-    protected ConfigurationProperties(ConfigurationSource source, ConfigurationProperties... nested) {
+    protected ConfigurationProperties(ConfigurationSource source) {
 
         this.source = source;
-        for (ConfigurationProperties props : nested) {
-            this.nested.put(props.getClass(), props);
-        }
+        this.throwExceptionForMissing();
     }
 
-    public ConfigurationProperties withConverter(ValueConverter valueConverter) {
+    protected ConfigurationProperties withNested(String name, ConfigurationProperties nested) {
+
+        this.nested.put(name, nested);
+        return this;
+    }
+
+    protected ConfigurationProperties withConverter(ValueConverter valueConverter) {
 
         this.valueConverter = valueConverter;
         return this;
     }
 
-    protected <T> T nested(Class<T> type) {
+    protected ConfigurationProperties withDefaults(Map<String, String> defaults) {
 
-        if (!nested.containsKey(type)) {
-            throw new IllegalArgumentException("No nested configuration properties of type " + type);
+        this.defaults.putAll(defaults);
+        return this;
+    }
+
+    protected ConfigurationProperties throwExceptionForMissing() {
+
+        this.defaultResolver = (name) -> defaults.computeIfAbsent(name, (_) -> {
+            throw new IllegalArgumentException("No configuration property named " + name);
+        });
+        return this;
+    }
+
+    protected ConfigurationProperties returnNullForMissing() {
+
+        this.defaultResolver = defaults::get;
+        return this;
+    }
+
+    public boolean isMissing(String name) {
+
+        return !isSet(name) && !defaults.containsKey(name);
+    }
+
+    public boolean isSet(String name) {
+
+        return source.getValue(name)
+                     .isPresent();
+    }
+
+    public boolean isDefault(String name) {
+
+        return !isSet(name) && defaults.containsKey(name);
+    }
+
+    protected <T extends ConfigurationProperties> T nested(String name, Class<T> type) {
+
+        if (!nested.containsKey(name)) {
+            throw new IllegalArgumentException("No nested configuration properties named " + name);
         }
-        return type.cast(nested.get(type));
+        return type.cast(nested.get(name));
     }
 
     protected String stringVal(String name) {
 
-        return source.getValue(name);
+        return source.getValue(name)
+                     .orElse(defaultResolver.apply(name));
     }
 
     protected boolean booleanVal(String name) {
 
-        return valueConverter.toBoolean(source.getValue(name));
+        return valueConverter.toBoolean(stringVal(name));
     }
 
     protected short shortVal(String name) {
 
-        return valueConverter.toShort(source.getValue(name));
+        return valueConverter.toShort(stringVal(name));
     }
 
     protected int intVal(String name) {
 
-        return valueConverter.toInt(source.getValue(name));
+        return valueConverter.toInt(stringVal(name));
     }
 
     protected long longVal(String name) {
 
-        return valueConverter.toLong(source.getValue(name));
+        return valueConverter.toLong(stringVal(name));
+    }
+
+    protected float floatVal(String name) {
+
+        return valueConverter.toFloat(stringVal(name));
+    }
+
+    protected double doubleVal(String name) {
+
+        return valueConverter.toDouble(stringVal(name));
     }
 }

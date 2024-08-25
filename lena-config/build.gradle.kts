@@ -14,6 +14,8 @@ apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
 dependencies {
     testImplementation(junitPlatform.junitJupiter)
     testImplementation(assertJLibs.assertjCore)
+    testImplementation(mockitoLibs.mockitoJunitJupiter)
+    testImplementation(libs.testing.systemStubs)
     testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
 

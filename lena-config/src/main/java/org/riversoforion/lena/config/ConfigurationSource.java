@@ -8,6 +8,8 @@ import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver;
 import org.riversoforion.lena.config.resolvers.PropertyNameResolver;
 import org.riversoforion.lena.config.resolvers.SystemPropertiesValueResolver;
 
+import java.util.Optional;
+
 public final class ConfigurationSource {
 
     private final NameResolver names;
@@ -19,10 +21,22 @@ public final class ConfigurationSource {
         this.values = values;
     }
 
-    public String getValue(String name) {
+    public Optional<String> getValue(String name) {
 
         String resolvedName = this.names.resolveName(name);
         return this.values.resolveValue(resolvedName);
+    }
+
+    // For testing
+    NameResolver getNameResolver() {
+
+        return this.names;
+    }
+
+    // For testing
+    ValueResolver getValueResolver() {
+
+        return this.values;
     }
 
     public static ConfigurationSource forEnvironment() {

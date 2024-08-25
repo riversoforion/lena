@@ -1,7 +1,11 @@
 [versions]
 junit = "5.10.0"
 assertj = "3.26.3"
+mockito = "5.12.0"
+systemStubs = "2.1.6"
 
 [libraries]
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
 assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+testing-systemStubs = { group = "uk.org.webcompere", name = "system-stubs-jupiter", version.ref = "systemStubs" }

@@ -44,4 +44,22 @@ public class DefaultValueConverter implements ValueConverter {
         }
         return Long.parseLong(value);
     }
+
+    @Override
+    public float toFloat(String value) {
+
+        if (value == null) {
+            return 0.0f;
+        }
+        return Float.parseFloat(value);
+    }
+
+    @Override
+    public double toDouble(String value) {
+
+        if (value == null) {
+            return 0.0;
+        }
+        return Double.parseDouble(value);
+    }
 }

@@ -3,7 +3,9 @@
  */
 package org.riversoforion.lena.config;
 
+import java.util.Optional;
+
 public interface ValueResolver {
 
-    String resolveValue(String name);
+    Optional<String> resolveValue(String name);
 }

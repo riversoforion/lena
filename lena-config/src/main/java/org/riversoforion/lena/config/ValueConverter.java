@@ -12,4 +12,8 @@ public interface ValueConverter {
     int toInt(String value);
 
     long toLong(String value);
+
+    float toFloat(String value);
+
+    double toDouble(String value);
 }
