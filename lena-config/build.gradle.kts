@@ -8,8 +8,6 @@ plugins {
 }
 
 apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
-// modules
-// propagate version
 
 dependencies {
     testImplementation(junitPlatform.junitJupiter)
@@ -26,5 +24,7 @@ java {
 }
 
 tasks.named<Test>("test") {
+    // -XX:+EnableDynamicAgentLoading : For ByteBuddy, used by Mockito/SystemStubs
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
     useJUnitPlatform()
 }
