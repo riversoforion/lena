@@ -6,7 +6,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("2.0.0-beta.1")
+    id("dev.aga.gradle.version-catalog-generator") version("2.0.0-beta.2")
 }
 
 rootProject.name = "lena"
