@@ -15,7 +15,7 @@ public final class ConfigurationSource {
     private final NameResolver names;
     private final ValueResolver values;
 
-    ConfigurationSource(NameResolver names, ValueResolver values) {
+    public ConfigurationSource(NameResolver names, ValueResolver values) {
 
         this.names = names;
         this.values = values;

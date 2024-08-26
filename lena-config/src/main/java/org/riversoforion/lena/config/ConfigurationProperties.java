@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class ConfigurationProperties {
+public class ConfigurationProperties {
 
     private final ConfigurationSource source;
     private final Map<String, ConfigurationProperties> nested = new HashMap<>();
     private ValueConverter valueConverter = new DefaultValueConverter();
     private final Map<String, String> defaults = new HashMap<>();
-    private Function<String, String> defaultResolver;
+    private Function<String, String> defaultsResolver;
 
     protected ConfigurationProperties(ConfigurationSource source) {
 
@@ -41,7 +41,7 @@ public abstract class ConfigurationProperties {
 
     protected ConfigurationProperties throwExceptionForMissing() {
 
-        this.defaultResolver = (name) -> defaults.computeIfAbsent(name, (_) -> {
+        this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (_) -> {
             throw new IllegalArgumentException("No configuration property named " + name);
         });
         return this;
@@ -49,7 +49,7 @@ public abstract class ConfigurationProperties {
 
     protected ConfigurationProperties returnNullForMissing() {
 
-        this.defaultResolver = defaults::get;
+        this.defaultsResolver = defaults::get;
         return this;
     }
 
@@ -80,7 +80,7 @@ public abstract class ConfigurationProperties {
     protected String stringVal(String name) {
 
         return source.getValue(name)
-                     .orElse(defaultResolver.apply(name));
+                     .orElseGet(() -> defaultsResolver.apply(name));
     }
 
     protected boolean booleanVal(String name) {
