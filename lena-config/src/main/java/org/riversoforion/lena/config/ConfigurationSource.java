@@ -15,7 +15,7 @@ public final class ConfigurationSource {
     private final NameResolver names;
     private final ValueResolver values;
 
-    public ConfigurationSource(NameResolver names, ValueResolver values) {
+    ConfigurationSource(NameResolver names, ValueResolver values) {
 
         this.names = names;
         this.values = values;
@@ -60,6 +60,11 @@ public final class ConfigurationSource {
 
         NameResolver names = new PropertyNameResolver(prefix);
         ValueResolver values = new SystemPropertiesValueResolver();
+        return new ConfigurationSource(names, values);
+    }
+
+    public static ConfigurationSource custom(NameResolver names, ValueResolver values) {
+
         return new ConfigurationSource(names, values);
     }
 }

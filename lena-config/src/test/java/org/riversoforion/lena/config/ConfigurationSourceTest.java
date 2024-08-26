@@ -6,6 +6,9 @@ package org.riversoforion.lena.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.riversoforion.lena.config.resolvers.EnvironmentNameResolver;
 import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver;
 import org.riversoforion.lena.config.resolvers.PropertyNameResolver;
@@ -14,16 +17,16 @@ import org.riversoforion.lena.config.resolvers.SystemPropertiesValueResolver;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ConfigurationSourceTest {
 
     @DisplayName("getValue delegates to resolvers")
     @Test
-    void getValue_DelegatesToResolvers() {
+    void getValue_DelegatesToResolvers(@Mock NameResolver names, @Mock ValueResolver values) {
 
-        NameResolver names = mock();
-        ValueResolver values = mock();
         when(names.resolveName("this.prop")).thenReturn("THIS_PROP");
         when(values.resolveValue("THIS_PROP")).thenReturn(Optional.of("some_value"));
 
@@ -77,5 +80,16 @@ class ConfigurationSourceTest {
         assertThat(source).isNotNull();
         assertThat(source.getNameResolver()).isInstanceOf(PropertyNameResolver.class);
         assertThat(source.getValueResolver()).isInstanceOf(SystemPropertiesValueResolver.class);
+    }
+
+    @DisplayName("custom source is created properly")
+    @Test
+    void customSource_CreatesCorrectly(@Mock NameResolver names, @Mock ValueResolver values) {
+
+        ConfigurationSource source = ConfigurationSource.custom(names, values);
+
+        assertThat(source).isNotNull();
+        assertThat(source.getNameResolver()).isSameAs(names);
+        assertThat(source.getValueResolver()).isSameAs(values);
     }
 }
