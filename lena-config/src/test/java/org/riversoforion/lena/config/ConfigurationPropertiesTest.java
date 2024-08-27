@@ -21,13 +21,13 @@ import static org.mockito.Mockito.*;
 class ConfigurationPropertiesTest {
 
     @Mock
-    ConfigurationSource source;
+    SimpleConfigurationSource source;
 
     @DisplayName("Nested properties are stored and retrieved")
     @Test
     void nestedProperties_StoredAndRetrieved() {
 
-        ConfigurationSource nestedSource = mock(ConfigurationSource.class);
+        SimpleConfigurationSource nestedSource = mock(SimpleConfigurationSource.class);
         ConfigurationProperties nested = new NestedConfigProps(nestedSource);
 
         ConfigurationProperties props = new ConfigurationProperties(source).withNested("nest", nested);
@@ -37,9 +37,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert boolean values")
     @Test
-    void converter_WithBooleanValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithBooleanValues(@Mock ValueConverter converter) {
 
         when(converter.toBoolean("Y")).thenReturn(true);
         when(source.getValue(anyString())).thenReturn(Optional.of("Y"));
@@ -52,9 +50,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert short values")
     @Test
-    void converter_WithShortValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithShortValues(@Mock ValueConverter converter) {
 
         when(converter.toShort("10")).thenReturn((short) 10);
         when(source.getValue(anyString())).thenReturn(Optional.of("10"));
@@ -67,9 +63,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert int values")
     @Test
-    void converter_WithIntValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithIntValues(@Mock ValueConverter converter) {
 
         when(converter.toInt("10")).thenReturn(10);
         when(source.getValue(anyString())).thenReturn(Optional.of("10"));
@@ -82,9 +76,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert long values")
     @Test
-    void converter_WithLongValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithLongValues(@Mock ValueConverter converter) {
 
         when(converter.toLong("10")).thenReturn(10L);
         when(source.getValue(anyString())).thenReturn(Optional.of("10"));
@@ -97,9 +89,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert float values")
     @Test
-    void converter_WithFloatValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithFloatValues(@Mock ValueConverter converter) {
 
         when(converter.toFloat("10.0")).thenReturn(10f);
         when(source.getValue(anyString())).thenReturn(Optional.of("10.0"));
@@ -112,9 +102,7 @@ class ConfigurationPropertiesTest {
 
     @DisplayName("ValueConverter is used to convert double values")
     @Test
-    void converter_WithDoubleValues(
-            @Mock
-            ValueConverter converter) {
+    void converter_WithDoubleValues(@Mock ValueConverter converter) {
 
         when(converter.toDouble("10.0")).thenReturn(10.0);
         when(source.getValue(anyString())).thenReturn(Optional.of("10.0"));
@@ -192,7 +180,7 @@ class ConfigurationPropertiesTest {
 
     private static class NestedConfigProps extends ConfigurationProperties {
 
-        protected NestedConfigProps(ConfigurationSource source) {
+        protected NestedConfigProps(SimpleConfigurationSource source) {
 
             super(source);
         }
