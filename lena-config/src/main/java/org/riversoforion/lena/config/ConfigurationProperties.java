@@ -41,7 +41,7 @@ public class ConfigurationProperties {
 
     protected ConfigurationProperties throwExceptionForMissing() {
 
-        this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (_) -> {
+        this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (ignored) -> {
             throw new IllegalArgumentException("No configuration property named " + name);
         });
         return this;
