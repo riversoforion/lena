@@ -13,21 +13,22 @@ rootProject.name = "lena"
 include("lena-config", "lena-config-annotation-processor")
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
     }
     versionCatalogs {
         // Testing
         generate("junitPlatform") {
-            from(toml("junit-bom"))
+            from(toml("testing-junit-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
         generate("assertJPlatform") {
-            from(toml("assertj-bom"))
+            from(toml("testing-assertj-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
         generate("mockitoPlatform") {
-            from(toml("mockito-bom"))
+            from(toml("testing-mockito-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
     }

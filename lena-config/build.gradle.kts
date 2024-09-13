@@ -3,11 +3,9 @@
  */
 
 plugins {
-    id("java-library")
+    id("lena.conventions")
     // semver
 }
-
-apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
 
 dependencies {
     testImplementation(junitPlatform.junitJupiter)
@@ -15,16 +13,4 @@ dependencies {
     testImplementation(mockitoPlatform.mockitoJunitJupiter)
     testImplementation(libs.testing.systemStubs)
     testRuntimeOnly(junitPlatform.junitJupiterEngine)
-}
-
-java {
-    toolchain {
-        version = JavaLanguageVersion.of(21)
-    }
-}
-
-tasks.named<Test>("test") {
-    // -XX:+EnableDynamicAgentLoading : For ByteBuddy, used by Mockito/SystemStubs
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
-    useJUnitPlatform()
 }

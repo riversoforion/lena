@@ -3,26 +3,6 @@
  */
 
 plugins {
-    id("java-library")
+    id("lena.conventions")
     // semver
-}
-
-apply(from = rootProject.file("buildSrc/shared.gradle.kts"))
-// modules
-// propagate version
-
-dependencies {
-    testImplementation(junitPlatform.junitJupiter)
-    testImplementation(assertJPlatform.assertjCore)
-    testRuntimeOnly(junitPlatform.junitJupiterEngine)
-}
-
-java {
-    toolchain {
-        version = JavaLanguageVersion.of(21)
-    }
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
 }
