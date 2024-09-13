@@ -26,7 +26,8 @@ java {
 }
 
 tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+    // Disable the warnings for missing documentation, for now. As we approach maturity, revisit.
+    (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:-missing", true)
 }
 
 tasks.named<Test>("test") {
