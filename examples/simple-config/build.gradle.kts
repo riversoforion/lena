@@ -10,6 +10,9 @@ tasks.named<JavaExec>("exec") {
 }
 
 dependencies {
+    implementation(project(":lena-config"))
+
     testImplementation(junitPlatform.junitJupiter)
+    testImplementation(libs.testing.systemStubs)
     testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
