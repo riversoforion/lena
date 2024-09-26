@@ -12,4 +12,10 @@ tasks.register<JavaExec>("exec") {
     classpath = sourceSets.main.get().runtimeClasspath
 
     jvmArgs("-XX:+EnableDynamicAgentLoading")
+    System.getProperties().forEach { (k, v) ->
+        systemProperty("$k", "$v")
+    }
+    project.properties.forEach { (k, v) ->
+        systemProperty(k, "$v")
+    }
 }
