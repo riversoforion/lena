@@ -3,23 +3,15 @@
  */
 
 plugins {
+    id("lena.java-conventions")
     `java-library`
     `maven-publish`
     signing
     // semver
 }
 
-group = "com.riversoforion.lena"
-version = "0.1.0"
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
         withJavadocJar()
         withSourcesJar()
     }
@@ -28,12 +20,6 @@ java {
 tasks.javadoc {
     // Disable the warnings for missing documentation, for now. As we approach maturity, revisit.
     (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:-missing", true)
-}
-
-tasks.named<Test>("test") {
-    // -XX:+EnableDynamicAgentLoading : For ByteBuddy, used by Mockito/SystemStubs
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
-    useJUnitPlatform()
 }
 
 publishing {

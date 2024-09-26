@@ -9,13 +9,13 @@ import java.util.function.Function;
 
 public class ConfigurationProperties {
 
-    private final SimpleConfigurationSource source;
+    private final ConfigurationSource source;
     private final Map<String, ConfigurationProperties> nested = new HashMap<>();
     private ValueConverter valueConverter = new DefaultValueConverter();
     private final Map<String, String> defaults = new HashMap<>();
     private Function<String, String> defaultsResolver;
 
-    protected ConfigurationProperties(SimpleConfigurationSource source) {
+    protected ConfigurationProperties(ConfigurationSource source) {
 
         this.source = source;
         this.throwExceptionForMissing();
