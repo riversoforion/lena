@@ -11,6 +11,10 @@ tasks.register<JavaExec>("exec") {
     group = "run examples"
     classpath = sourceSets.main.get().runtimeClasspath
 
+    dependencies {
+        implementation(project(":lena-config"))
+    }
+
     jvmArgs("-XX:+EnableDynamicAgentLoading")
     System.getProperties().forEach { (k, v) ->
         systemProperty("$k", "$v")

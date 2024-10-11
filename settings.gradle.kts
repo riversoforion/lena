@@ -13,7 +13,9 @@ rootProject.name = "lena"
 include(
     "lena-config",
     "lena-config-annotation-processor",
+    "examples:common",
     "examples:simple-config",
+    "examples:nested-config",
 )
 
 dependencyResolutionManagement {

@@ -3,11 +3,9 @@
  */
 package com.riversoforion.lena.example;
 
-import org.riversoforion.lena.config.ConfigurationProperties;
-
 import java.io.PrintStream;
 
-public class SimpleConfigExample {
+public class SimpleConfigExample extends ExampleApplication {
 
     private final ApplicationConfig config = new ApplicationConfig();
 
@@ -34,29 +32,20 @@ public class SimpleConfigExample {
         out.printf("%25s = %b%n", "isLocalMode", config.isLocalMode());
     }
 
-    private boolean isHelpRequested(String[] args) {
+    @Override
+    protected void printHelp(PrintStream out) {
 
-        for (String arg : args) {
-            if (arg.equals("-h") || arg.equals("--help")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void printHelp(PrintStream out) {
-
-        out.printf("""
-                   Demonstrates a simple usage of %s
-                   
-                   Run with environment variables or system properties set. The following configuration properties are supported:
-                       Environment Variable    System Property         Type
-                       SERVICE_URL             service.url             string
-                       SERVICE_API_KEY         service.api.key         string
-                       SERVICE_API_SECRET      service.api.secret      string
-                       NET_CONNECTION_TIMEOUT  net.connection.timeout  long
-                       NET_READ_TIMEOUT        net.read.timeout        long
-                       LOCAL_MODE              local.mode              flag
-                   """, ConfigurationProperties.class.getName());
+        out.print("""
+                  Demonstrates a simple usage of ConfigurationProperties
+                  
+                  Run with environment variables or system properties set. The following configuration properties are supported:
+                      Environment Variable    System Property         Type
+                      SERVICE_URL             service.url             string
+                      SERVICE_API_KEY         service.api.key         string
+                      SERVICE_API_SECRET      service.api.secret      string
+                      NET_CONNECTION_TIMEOUT  net.connection.timeout  long
+                      NET_READ_TIMEOUT        net.read.timeout        long
+                      LOCAL_MODE              local.mode              flag
+                  """);
     }
 }
