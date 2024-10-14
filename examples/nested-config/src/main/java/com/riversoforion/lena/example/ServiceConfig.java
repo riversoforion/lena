@@ -14,7 +14,7 @@ public class ServiceConfig extends ConfigurationProperties {
     public ServiceConfig() {
 
         super(prioritized(forEnvironment(PREFIX), forSystemProperties(PREFIX)));
-        withNested("net", new NetworkConfig());
+        addNested("net", new NetworkConfig());
         returnNullForMissing();
     }
 

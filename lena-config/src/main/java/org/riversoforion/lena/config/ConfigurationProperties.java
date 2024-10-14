@@ -21,36 +21,31 @@ public class ConfigurationProperties {
         this.throwExceptionForMissing();
     }
 
-    protected ConfigurationProperties withNested(String name, ConfigurationProperties nested) {
+    protected void addNested(String name, ConfigurationProperties nested) {
 
         this.nested.put(name, nested);
-        return this;
     }
 
-    protected ConfigurationProperties withConverter(ValueConverter valueConverter) {
+    protected void initConverter(ValueConverter valueConverter) {
 
         this.valueConverter = valueConverter;
-        return this;
     }
 
-    protected ConfigurationProperties withDefaults(Map<String, String> defaults) {
+    protected void initDefaults(Map<String, String> defaults) {
 
         this.defaults.putAll(defaults);
-        return this;
     }
 
-    protected ConfigurationProperties throwExceptionForMissing() {
+    protected void throwExceptionForMissing() {
 
         this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (ignored) -> {
             throw new IllegalArgumentException("No configuration property named " + name);
         });
-        return this;
     }
 
-    protected ConfigurationProperties returnNullForMissing() {
+    protected void returnNullForMissing() {
 
         this.defaultsResolver = defaults::get;
-        return this;
     }
 
     public boolean isMissing(String name) {

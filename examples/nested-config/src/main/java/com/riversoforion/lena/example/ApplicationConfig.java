@@ -13,8 +13,8 @@ public class ApplicationConfig extends ConfigurationProperties {
 
         super(prioritized(forEnvironment(), forSystemProperties()));
         returnNullForMissing();
-        withNested(ServiceConfig.PREFIX, new ServiceConfig());
-        withNested(NetworkConfig.PREFIX, new NetworkConfig());
+        addNested(ServiceConfig.PREFIX, new ServiceConfig());
+        addNested(NetworkConfig.PREFIX, new NetworkConfig());
     }
 
     public ServiceConfig service() {
