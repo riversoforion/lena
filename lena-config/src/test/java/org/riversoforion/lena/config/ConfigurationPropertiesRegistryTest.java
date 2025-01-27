@@ -1,16 +1,13 @@
 /*
  * Copyright (c) 2025. Eric McIntyre / Rivers of Orion
  */
-package org.riversoforion.lena.config.internal;
+package org.riversoforion.lena.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.riversoforion.lena.config.ConfigurationProperties;
-import org.riversoforion.lena.config.ConfigurationSource;
-import org.riversoforion.lena.config.Namespace;
 
 import java.util.List;
 
@@ -23,8 +20,8 @@ class ConfigurationPropertiesRegistryTest {
     private ConfigurationSource configurationSource;
     private final ConfigurationPropertiesRegistry registry = ConfigurationPropertiesRegistry.instance();
 
-    @DisplayName("registration and fetching")
     @Test
+    @DisplayName("registration and fetching")
     void registry() {
 
         Namespace root = Namespace.root();
@@ -33,7 +30,7 @@ class ConfigurationPropertiesRegistryTest {
         Namespace aa = a.child("child");
         Namespace bb = b.child("child");
         List<Namespace> namespaces = List.of(root, a, b, aa, bb);
-        namespaces.stream().map(ns -> new TestConfigurationProperties(configurationSource, ns)).forEach(registry::register);
+        namespaces.forEach(ns -> new TestConfigurationProperties(configurationSource, ns));
 
         assertThat(namespaces).allMatch(ns -> {
             ConfigurationProperties props = registry.get(ns);

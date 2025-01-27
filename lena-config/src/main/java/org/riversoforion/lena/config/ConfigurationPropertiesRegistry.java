@@ -1,15 +1,12 @@
 /*
  * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
-package org.riversoforion.lena.config.internal;
-
-import org.riversoforion.lena.config.ConfigurationProperties;
-import org.riversoforion.lena.config.Namespace;
+package org.riversoforion.lena.config;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ConfigurationPropertiesRegistry {
+class ConfigurationPropertiesRegistry {
 
     private static final ConfigurationPropertiesRegistry INSTANCE = new ConfigurationPropertiesRegistry();
 
@@ -19,12 +16,12 @@ public class ConfigurationPropertiesRegistry {
         // Singleton
     }
 
-    public static ConfigurationPropertiesRegistry instance() {
+    static ConfigurationPropertiesRegistry instance() {
 
         return INSTANCE;
     }
 
-    public ConfigurationProperties get(Namespace namespace) {
+    ConfigurationProperties get(Namespace namespace) {
 
         if (registry.containsKey(namespace)) {
             return registry.get(namespace);
@@ -32,7 +29,7 @@ public class ConfigurationPropertiesRegistry {
         throw new IllegalArgumentException("Namespace " + namespace + " not registered");
     }
 
-    public void register(ConfigurationProperties properties) {
+    void register(ConfigurationProperties properties) {
 
         Namespace ns = properties.namespace();
         if (registry.containsKey(ns)) {

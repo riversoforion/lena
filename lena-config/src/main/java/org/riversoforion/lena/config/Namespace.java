@@ -3,37 +3,44 @@
  */
 package org.riversoforion.lena.config;
 
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
+import static java.text.Normalizer.normalize;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 
 /**
- * Normalized configuration namespace, including property names. A normalized namespace is as follows:
+ * Configuration namespace, including property names. A normalized namespace is as follows:
  * <ul>
  *     <li></li>
  * </ul>
  */
+// TODO Document
 public class Namespace implements Comparable<Namespace>, CharSequence {
 
     public static final String SEPARATOR = "/";
-    private static final Pattern SEGMENT_PATTERN = Pattern.compile("^[a-z0-9-]*$");
+    private static final Pattern NON_ASCII = Pattern.compile("[^\\p{ASCII}]");
+    private static final Pattern LETTERS_AND_NUMBERS = Pattern.compile("[^a-z0-9]+");
 
-    private final List<String> segments;
+    private final List<String> rawSegments;
     private final String name;
 
     private Namespace(List<String> segments) {
 
-        this.segments = segments == null ? List.of() : List.copyOf(segments);
+        this.rawSegments = segments == null ? List.of() : segments.stream().filter(Namespace::notEmpty).toList();
         StringJoiner joiner = new StringJoiner(SEPARATOR, SEPARATOR, "");
-        this.segments.forEach(joiner::add);
+        this.rawSegments.stream().map(Namespace::normalizeSegment).filter(Namespace::notEmpty).forEach(joiner::add);
         this.name = joiner.toString();
-
     }
+
+    // Static factories
 
     public static Namespace root() {
 
@@ -45,77 +52,78 @@ public class Namespace implements Comparable<Namespace>, CharSequence {
         if (segments == null) {
             segments = new String[0];
         }
-        return new Namespace(stream(segments).filter(Objects::nonNull).peek(Namespace::validateSegment).toList());
+        return new Namespace(stream(segments).filter(Namespace::notEmpty).flatMap(Namespace::splitSegment).toList());
     }
 
     public static Namespace parse(String name) {
 
-        validate(name);
-        String[] segments = name.substring(1).split(SEPARATOR);
+        String[] segments = name.split(SEPARATOR);
         if (segments.length == 1 && segments[0].isEmpty()) {
             return root();
         }
-        stream(segments).forEach(Namespace::validateSegment);
         return new Namespace(asList(segments));
     }
 
-    static boolean isValid(String namespace) {
+    static Stream<String> splitSegment(String segment) {
 
-        return namespace != null && namespace.startsWith(SEPARATOR);
+        return Stream.of(segment.split(SEPARATOR)).filter(Namespace::notEmpty);
     }
 
-    static void validate(String name) {
+    static String normalizeSegment(String segment) {
 
-        if (!isValid(name)) {
-            throw new IllegalArgumentException("Invalid namespace: " + name);
+        if (segment == null || segment.isBlank()) {
+            return "";
         }
+        String partiallyNormalized = NON_ASCII.matcher(normalize(segment.trim().toLowerCase(Locale.ROOT), Form.NFD)).replaceAll("");
+        return LETTERS_AND_NUMBERS.matcher(partiallyNormalized).replaceAll("-");
     }
 
-    static boolean isSegmentValid(String segment) {
+    private static boolean notEmpty(String segment) {
 
-        if (segment == null || segment.isEmpty()) {
-            return false;
-        }
-        return SEGMENT_PATTERN.matcher(segment).matches();
+        return segment != null && !segment.isBlank();
     }
 
-    static void validateSegment(String segment) {
-
-        if (!isSegmentValid(segment)) {
-            throw new IllegalArgumentException("Invalid namespace segment: " + segment);
-        }
-    }
+    // Operations
 
     public String name() {
 
         return name;
     }
 
-    public Namespace child(String namespace) {
+    public List<String> segments() {
 
-        if (namespace == null) {
-            throw new IllegalArgumentException("Child namespace cannot be null");
+        return List.copyOf(rawSegments);
+    }
+
+    public Namespace child(String name) {
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Child namespace must contain at least one new segment");
         }
-        if (namespace.startsWith(SEPARATOR)) {
-            return Namespace.parse(namespace);
+        if (name.startsWith(SEPARATOR)) {
+            return Namespace.parse(name);
         }
-        List<String> childSegments = asList(namespace.split(SEPARATOR));
+        List<String> childSegments = asList(name.split(SEPARATOR));
         if (childSegments.isEmpty()) {
-            throw new IllegalArgumentException("Child namespace must contain at least one segment");
+            throw new IllegalArgumentException("Child namespace must contain at least one new segment");
         }
-        childSegments.forEach(Namespace::validateSegment);
-        List<String> allSegments = new ArrayList<>(this.segments);
+        List<String> allSegments = new ArrayList<>(this.rawSegments);
         allSegments.addAll(childSegments);
         return new Namespace(allSegments);
     }
 
-    public List<String> resolveProperty(String propertyName) {
+    public List<String> resolveProperty(String... names) {
 
-        validateSegment(propertyName);
-        List<String> property = new ArrayList<>(segments);
-        property.add(propertyName);
+        String[] propertyNames = Objects.requireNonNullElse(names, new String[0]);
+        if (propertyNames.length == 0) {
+            throw new IllegalArgumentException("Property names cannot be empty");
+        }
+        List<String> property = new ArrayList<>(rawSegments);
+        property.addAll(asList(propertyNames));
         return property;
     }
+
+    // Object
 
     @Override
     public String toString() {
@@ -130,14 +138,16 @@ public class Namespace implements Comparable<Namespace>, CharSequence {
             return false;
         }
         Namespace namespace = (Namespace) o;
-        return Objects.equals(segments, namespace.segments);
+        return Objects.equals(name, namespace.name);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hashCode(segments);
+        return Objects.hashCode(name);
     }
+
+    // CharSequence
 
     @Override
     public int length() {
@@ -156,6 +166,8 @@ public class Namespace implements Comparable<Namespace>, CharSequence {
 
         return name.subSequence(start, end);
     }
+
+    // Comparable
 
     @Override
     public int compareTo(Namespace o) {

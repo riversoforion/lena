@@ -26,148 +26,111 @@ class NamespaceTest {
         assertThat(Namespace.root().name()).isEqualTo("/");
     }
 
-    @DisplayName("of (valid segments)")
     @ParameterizedTest(name = "''{0}''")
-    @MethodSource("validSegments")
-    void of_WithValidSegments(String expectedName, String[] segments) {
+    @MethodSource("ofSegments")
+    @DisplayName("factory method 'of'")
+    void of(String expectedName, String[] segments) {
 
         assertThat(Namespace.of(segments).name()).isEqualTo(expectedName);
     }
 
-    static Stream<Arguments> validSegments() {
+    static Stream<Arguments> ofSegments() {
 
         return Stream.of(arguments("/first", strings("first")),
                          arguments("/first/second", strings("first", "second")),
                          arguments("/number-1/number-2/number-3", strings("number-1", "number-2", "number-3")),
                          arguments("/two-parts/three-name-parts", strings("two-parts", "three-name-parts")),
+                         arguments("/good-segment", strings("good.segment")),
+                         arguments("/valid-name", strings("valid_name")),
+                         arguments("/uppercaseallowed", strings("UppercaseAllowed")),
+                         arguments("/good-segment/also/good/segment", strings("good-segment", "also/good/segment")),
+                         arguments("/valid-segment/good-segment", strings("Valid-Segment", "good-segment")),
+                         arguments("/this-is-fine/this-one-too/tambien-bueno", strings("this-is-fine", "this-one-too", "también_bueno")),
+                         arguments("/spaces-are-allowed/and-numb3rs/and-pec-al-c-aracter-",
+                                   strings("spaces are allowed", "and numb3rs", "and $pec!al c#aracter$")),
                          arguments("/", strings()),
                          arguments("/", strings((String) null)),
                          arguments("/", null));
     }
 
-    @DisplayName("of (invalid segments)")
-    @ParameterizedTest(name = "''{0}''")
-    @MethodSource("invalidSegments")
-    void of_WithInvalidSegments(String[] segments) {
-
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> Namespace.of(segments));
-    }
-
-    static Stream<Arguments> invalidSegments() {
-
-        return Stream.of(arguments(strings("bad.segment")),
-                         arguments(strings("invalid_name")),
-                         arguments(strings("NoUppercase")),
-                         arguments(strings("good-segment", "bad/segment")),
-                         arguments(strings("Bad-Segment", "good-segment")),
-                         arguments(strings("this-is-fine", "this-one-too", "no_bueno")),
-                         arguments(strings("no spaces allowed")));
-    }
-
-    @DisplayName("parse (valid name)")
-    @ParameterizedTest(name = "''{0}''")
+    @ParameterizedTest(name = "''{1}'' -> ''{0}''")
     @CsvSource(textBlock = """
-                           /
-                           /first
-                           /first/second
-                           /number-1/number-2/number-3
+                           /, /
+                           /first, /first
+                           /first/second, /first/second
+                           /number-1/number-2/number-3, /number-1/number-2/number-3
+                           /, '      '
+                           /, ///
+                           /first, first
+                           /first/second, first/second
+                           /good-segment/valid-segment, /good-segment/ValiD-SegmenT
+                           /this-is-fine/this-is-fine, /this_is_fine/this-is-fine
+                           /not-wrong, /not.wrong
+                           /spaces-and/special-characters/a-w3d, /spaces and/special characters/a!!@w3d
+                           /allow/empty-segments, /allow//empty-segments
+                           /whitespace/around-segments/is-trimmed, '/ whitespace /\taround segments/is-trimmed '
+                           /first/second, ///first//second/
                            """)
-    void parse_WithValidName(String name) {
+    @DisplayName("factory method 'parse'")
+    void parse(String expectedName, String name) {
 
-        assertThat(Namespace.parse(name).name()).isEqualTo(name);
+        assertThat(Namespace.parse(name).name()).isEqualTo(expectedName);
     }
 
-    @DisplayName("parse (invalid name)")
-    @ParameterizedTest(name = "''{0}''")
-    @NullAndEmptySource
+    @ParameterizedTest(name = "''{1}'' -> ''{0}''")
     @CsvSource(textBlock = """
-                           '      '
-                           first
-                           first/second
-                           /good-segment/Bad-Segment
-                           /this_is_wrong/this-is-fine
-                           /also.wrong
-                           /can't have spaces/or/special characters
-                           /no//empty-segments
-                           /no/ whitespace /\tinside segments
+                           segment, segment
+                           segment-name, segment-name
+                           segment-name, Segment-NAME
+                           s3gment-name, s3gment name
+                           -3gment-nam-, $3gment_nam*
+                           segment-name, ' segment name '
+                           '', ''
+                           '',
+                           '', '    '
                            """)
-    void parse_WithInvalidName(String name) {
+    @DisplayName("normalize segment")
+    void normalizeSegment(String expectedResult, String segment) {
 
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> Namespace.parse(name));
+        assertThat(Namespace.normalizeSegment(segment)).isEqualTo(expectedResult);
     }
 
-    @DisplayName("isValidSegment (valid)")
-    @ParameterizedTest(name = "''{0}''")
+    @ParameterizedTest(name = "''{0}'' resolves to ''{2}''")
     @CsvSource(textBlock = """
-                           valid
-                           i-am-valid
-                           v4l1d
-                           this-is-a-6-part-name
+                           /parent/sub-1, 2, sub-1
+                           /parent/sub-1/sub-2/sub-3, 4, sub-1/sub-2/sub-3
+                           /absolute/child, 2, /absolute/child
+                           /parent/valid-name, 2, valid name
+                           /parent/also-valid, 2, also__valid
                            """)
-    void isValidSegment_WithValidSegment(String segment) {
-
-        assertThat(Namespace.isSegmentValid(segment)).isTrue();
-    }
-
-    @DisplayName("isValidSegment (invalid)")
-    @ParameterizedTest(name = "''{0}''")
-    @NullAndEmptySource
-    @CsvSource(textBlock = """
-                           i'm-invalid
-                           also_not_valid
-                           in.valid
-                           ' beginning-space'
-                           'trailing-space '
-                           spaces in the middle
-                           """)
-    void isValidSegment_WithInvalidSegment(String segment) {
-
-        assertThat(Namespace.isSegmentValid(segment)).isFalse();
-    }
-
-    @DisplayName("child (valid name)")
-    @ParameterizedTest(name = "''{0}'' resolves to ''{1}''")
-    @CsvSource(textBlock = """
-                           sub-1, /parent/sub-1
-                           sub-1/sub-2/sub-3, /parent/sub-1/sub-2/sub-3
-                           /absolute/child, /absolute/child
-                           """)
-    void child_WithValidName(String name, String expectedChildName) {
+    @DisplayName("create child namespaces with valid name")
+    void child_WithValidName(String expectedChildName, int expectedSegments, String name) {
 
         Namespace parent = Namespace.of("parent");
         Namespace child = parent.child(name);
         assertThat(child.name()).isEqualTo(expectedChildName);
+        assertThat(child.segments()).hasSize(expectedSegments);
     }
 
-    @DisplayName("child (invalid name)")
     @ParameterizedTest(name = "''{0}''")
     @NullAndEmptySource
     @CsvSource(textBlock = """
                            '    '
-                           invalid name
-                           also_not_valid
                            """)
+    @DisplayName("create child namespaces with invalid name")
     void child_WithInvalidName(String name) {
 
         Namespace parent = Namespace.of("parent");
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> parent.child(name));
     }
 
-    @DisplayName("resolveProperty (valid name)")
     @Test
-    void resolveProperty_WithValidPropertyName() {
+    @DisplayName("property names resolve")
+    void resolveProperty() {
 
         Namespace namespace = Namespace.of("parent", "child");
-        List<String> propName = namespace.resolveProperty("prop-name");
-        assertThat(propName).containsExactly("parent", "child", "prop-name");
-    }
-
-    @DisplayName("resolveProperty (invalid name)")
-    @Test
-    void resolveProperty_WithInvalidPropertyName() {
-
-        Namespace namespace = Namespace.of("parent", "child");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> namespace.resolveProperty("invalid.prop.name"));
+        List<String> propName = namespace.resolveProperty("prop-name", "yet.anotherProp");
+        assertThat(propName).containsExactly("parent", "child", "prop-name", "yet.anotherProp");
     }
 
     private static Object strings(String... strings) {
@@ -175,8 +138,8 @@ class NamespaceTest {
         return strings;
     }
 
-    @DisplayName("Comparable implementation")
     @Test
+    @DisplayName("Comparable implementation")
     void comparable() {
         Namespace namespace = Namespace.of("parent", "child");
         Namespace same = Namespace.of("parent", "child");
@@ -189,8 +152,8 @@ class NamespaceTest {
         assertThat(namespace.compareTo(more)).isNegative();
     }
 
-    @DisplayName("CharSequence implementation")
     @Test
+    @DisplayName("CharSequence implementation")
     void charSequence() {
         Namespace namespace = Namespace.of("parent", "child");
         assertThat(namespace.length()).isEqualTo(13);
