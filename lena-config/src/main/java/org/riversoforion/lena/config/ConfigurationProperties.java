@@ -1,39 +1,51 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
-public class ConfigurationProperties {
+public abstract class ConfigurationProperties {
 
     private final ConfigurationSource source;
-    private final Map<String, ConfigurationProperties> nested = new HashMap<>();
-    private ValueConverter valueConverter = new DefaultValueConverter();
+    private final Namespace namespace;
+    private final ValueConverter valueConverter;
     private final Map<String, String> defaults = new HashMap<>();
     private Function<String, String> defaultsResolver;
+    // Cache here for convenience
+    private transient final ConfigurationPropertiesRegistry registry = ConfigurationPropertiesRegistry.instance();
 
     protected ConfigurationProperties(ConfigurationSource source) {
 
+        this(source, Namespace.root());
+    }
+
+    protected ConfigurationProperties(ConfigurationSource source, Namespace namespace) {
+
         this.source = source;
+        this.namespace = namespace;
+        this.valueConverter = createConverter();
+        this.defaults.putAll(createDefaults());
         this.throwExceptionForMissing();
+        this.registry.register(this);
+        createChildren();
     }
 
-    protected void addNested(String name, ConfigurationProperties nested) {
+    protected ValueConverter createConverter() {
 
-        this.nested.put(name, nested);
+        return new DefaultValueConverter();
     }
 
-    protected void initConverter(ValueConverter valueConverter) {
+    protected Map<String, String> createDefaults() {
 
-        this.valueConverter = valueConverter;
+        return Map.of();
     }
 
-    protected void initDefaults(Map<String, String> defaults) {
-
-        this.defaults.putAll(defaults);
+    protected void createChildren() {
+        // Only for subclasses
     }
 
     protected void throwExceptionForMissing() {
@@ -48,6 +60,11 @@ public class ConfigurationProperties {
         this.defaultsResolver = defaults::get;
     }
 
+    public Namespace namespace() {
+
+        return namespace;
+    }
+
     public boolean isMissing(String name) {
 
         return !isSet(name) && !defaults.containsKey(name);
@@ -55,8 +72,7 @@ public class ConfigurationProperties {
 
     public boolean isSet(String name) {
 
-        return source.getValue(name)
-                     .isPresent();
+        return sourceVal(name).isPresent();
     }
 
     public boolean isDefault(String name) {
@@ -64,18 +80,19 @@ public class ConfigurationProperties {
         return !isSet(name) && defaults.containsKey(name);
     }
 
-    protected <T extends ConfigurationProperties> T nested(String name, Class<T> type) {
+    protected <T extends ConfigurationProperties> T nested(Namespace namespace, Class<T> type) {
 
-        if (!nested.containsKey(name)) {
-            throw new IllegalArgumentException("No nested configuration properties named " + name);
-        }
-        return type.cast(nested.get(name));
+        return type.cast(registry.get(namespace));
+    }
+
+    protected Optional<String> sourceVal(String name) {
+
+        return source.getValue(namespace, name);
     }
 
     protected String stringVal(String name) {
 
-        return source.getValue(name)
-                     .orElseGet(() -> defaultsResolver.apply(name));
+        return sourceVal(name).orElseGet(() -> defaultsResolver.apply(name));
     }
 
     protected boolean booleanVal(String name) {
