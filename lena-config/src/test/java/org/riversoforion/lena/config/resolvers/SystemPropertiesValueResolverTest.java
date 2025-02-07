@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config.resolvers;
 
@@ -19,8 +19,8 @@ class SystemPropertiesValueResolverTest {
     private final SystemProperties sysProps = new SystemProperties();
     private final SystemPropertiesValueResolver resolver = new SystemPropertiesValueResolver();
 
-    @DisplayName("resolveValue finds existing system properties")
     @Test
+    @DisplayName("resolveValue finds existing system properties")
     void resolveValue_Found() throws Exception {
 
         sysProps.set("river.name", "Lena")
@@ -31,8 +31,8 @@ class SystemPropertiesValueResolverTest {
                 });
     }
 
-    @DisplayName("resolveValue is empty for non-existent system properties")
     @Test
+    @DisplayName("resolveValue is empty for non-existent system properties")
     void resolveValue_NotFound() throws Exception {
 
         sysProps.execute(() -> {

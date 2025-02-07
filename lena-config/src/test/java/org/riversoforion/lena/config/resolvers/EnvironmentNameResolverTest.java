@@ -1,50 +1,57 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config.resolvers;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.riversoforion.lena.config.Namespace;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class EnvironmentNameResolverTest {
 
-    @DisplayName("resolveName with valid scenarios")
     @ParameterizedTest(name = "{0}+{1} -> {2}")
+    @DisplayName("resolveName with valid scenarios")
     @CsvSource(textBlock = """
-                           , env_var, ENV_VAR
-                           , envVar, ENV_VAR
+                           '', env_var, ENV_VAR
+                           '', envVar, ENVVAR
                            '', foo.bar, FOO_BAR
-                           the.prefix, the name, THE_PREFIX_THE_NAME
-                           prefix with space, name%with-weird+Characters!, PREFIX_WITH_SPACE_NAME_WITH_WEIRD_CHARACTERS
-                           withNumbers6, IContain2Numbers31AndAQ, WITH_NUMBERS6_I_CONTAIN2_NUMBERS31_AND_A_Q
+                           the.namespace, the name, THE_NAMESPACE_THE_NAME
+                           Namespace with space, name%with-weird+Characters!, NAMESPACE_WITH_SPACE_NAME_WITH_WEIRD_CHARACTERS
+                           withNumbers6, IContain2Numbers31AndAQ, WITHNUMBERS6_ICONTAIN2NUMBERS31ANDAQ
+                           my-ns, _some-name, MY_NS_SOME_NAME
+                           my-ns, @some-name, MY_NS_SOME_NAME
+                           PerfectlyValidNamespace, ValidName, PERFECTLYVALIDNAMESPACE_VALIDNAME
                            """)
-    void resolveName_Valid(String prefix, String name, String expected) {
+    void resolveName_Valid(String namespace, String name, String expected) {
 
-        EnvironmentNameResolver resolver = new EnvironmentNameResolver(prefix);
+        Namespace ns = Namespace.parse(namespace);
+        EnvironmentNameResolver resolver = new EnvironmentNameResolver();
 
-        String actual = resolver.resolveName(name);
+        String actual = resolver.resolveName(ns, name);
 
         assertThat(actual).isEqualTo(expected);
     }
 
-    @DisplayName("resolveName with invalid scenarios")
     @ParameterizedTest(name = "{0}+{1}")
+    @DisplayName("resolveName with invalid scenarios")
     @CsvSource(textBlock = """
-                           ,
-                           ,''
-                           ,-./*
-                           my.prefix,
-                           my.prefix,''
-                           my.prefix,()$%
+                           /,
+                           /, ''
+                           /, -./*
+                           /my/namespace,
+                           /my/namespace, ''
+                           /my/namespace, ()$%
+                           PerfectlyValidNamespace, @*\\%
                            """)
-    void resolveName_Invalid(String prefix, String name) {
+    void resolveName_Invalid(String namespace, String name) {
 
-        EnvironmentNameResolver resolver = new EnvironmentNameResolver(prefix);
+        Namespace ns = Namespace.parse(namespace);
+        EnvironmentNameResolver resolver = new EnvironmentNameResolver();
 
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> resolver.resolveName(name));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> resolver.resolveName(ns, name));
     }
 }

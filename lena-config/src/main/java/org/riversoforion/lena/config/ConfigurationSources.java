@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
@@ -12,29 +12,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
 
 public class ConfigurationSources {
 
     public static ConfigurationSource forEnvironment() {
 
-        return forEnvironment(null);
-    }
-
-    public static ConfigurationSource forEnvironment(String prefix) {
-
-        NameResolver names = new EnvironmentNameResolver(prefix);
+        NameResolver names = new EnvironmentNameResolver();
         ValueResolver values = new EnvironmentValueResolver();
         return new SimpleConfigurationSource(names, values);
     }
 
     public static ConfigurationSource forSystemProperties() {
 
-        return forSystemProperties(null);
-    }
-
-    public static ConfigurationSource forSystemProperties(String prefix) {
-
-        NameResolver names = new PropertyNameResolver(prefix);
+        NameResolver names = new PropertyNameResolver();
         ValueResolver values = new SystemPropertiesValueResolver();
         return new SimpleConfigurationSource(names, values);
     }
@@ -44,6 +35,14 @@ public class ConfigurationSources {
         Objects.requireNonNull(names);
         Objects.requireNonNull(values);
         return new SimpleConfigurationSource(names, values);
+    }
+
+    public static ConfigurationSource custom(NameResolver names, ValueResolver values, Namespace namespace) {
+
+        Objects.requireNonNull(names);
+        Objects.requireNonNull(values);
+        Objects.requireNonNull(namespace);
+        return CompositeConfigurationSource.namespaced(custom(names, values), namespace);
     }
 
     public static ConfigurationSource prioritized(ConfigurationSource first, ConfigurationSource second, ConfigurationSource... other) {
@@ -57,6 +56,16 @@ public class ConfigurationSources {
         if (other != null) {
             sources.addAll(Arrays.asList(other));
         }
+        return new PrioritizedConfigurationSource(sources);
+    }
+
+    public static ConfigurationSource prioritized(SortedMap<ConfigurationSource, Namespace> sources) {
+
+        Objects.requireNonNull(sources);
+        if (sources.size() < 2) {
+            throw new IllegalArgumentException("There must be at least two prioritized configuration sources");
+        }
+
         return new PrioritizedConfigurationSource(sources);
     }
 }
