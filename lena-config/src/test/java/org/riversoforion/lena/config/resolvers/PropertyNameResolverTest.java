@@ -4,6 +4,7 @@
 package org.riversoforion.lena.config.resolvers;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.riversoforion.lena.config.Namespace;
@@ -63,10 +64,20 @@ class PropertyNameResolverTest {
     void resolveName_Invalid(String namespace, String name) {
 
         Namespace ns = Namespace.parse(namespace);
-
         PropertyNameResolver resolver = new PropertyNameResolver();
 
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> resolver.resolveName(ns, name));
+    }
+
+    @Test
+    @DisplayName("resolveName with additional names")
+    void resolveName_AdditionalNames() {
+
+        Namespace ns = Namespace.parse("my-prefix");
+        PropertyNameResolver resolver = new PropertyNameResolver();
+
+        String result = resolver.resolveName(ns, "my-name", "Another Name", "4th+Name");
+        assertThat(result).isEqualTo("my-prefix.my-name.Another Name.4th+Name");
     }
 
     private InputStream testProperties() {

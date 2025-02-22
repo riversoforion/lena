@@ -6,6 +6,7 @@ package org.riversoforion.lena.config.resolvers;
 import org.riversoforion.lena.config.NameResolver;
 import org.riversoforion.lena.config.Namespace;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -20,11 +21,13 @@ public class EnvironmentNameResolver implements NameResolver {
     private static final String SEPARATOR = "_";
 
     @Override
-    public String resolveName(Namespace namespace, String name) {
+    public String resolveName(Namespace namespace, String name, String... additionalNames) {
 
-        String sanitized = sanitize(name);
-        NameResolver.validateNotEmpty(sanitized);
-        List<String> parts = namespace.resolveProperty(sanitized);
+        String[] allNames = Arrays.stream(NameResolver.allValidNames(name, additionalNames))
+                                  .map(this::sanitize)
+                                  .peek(NameResolver::validateNotEmpty)
+                                  .toArray(String[]::new);
+        List<String> parts = namespace.resolveProperty(allNames);
         List<String> normalized = parts.stream().map(this::sanitize).flatMap(this::split).map(this::normalize).toList();
         return String.join(SEPARATOR, normalized);
     }

@@ -4,6 +4,7 @@
 package org.riversoforion.lena.config.resolvers;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.riversoforion.lena.config.Namespace;
@@ -53,5 +54,16 @@ class EnvironmentNameResolverTest {
         EnvironmentNameResolver resolver = new EnvironmentNameResolver();
 
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> resolver.resolveName(ns, name));
+    }
+
+    @Test
+    @DisplayName("resolveName with additional names")
+    void resolveName_AdditionalNames() {
+
+        Namespace ns = Namespace.parse("my-prefix");
+        EnvironmentNameResolver resolver = new EnvironmentNameResolver();
+
+        String result = resolver.resolveName(ns, "my-name", "_Another Name ", "4th+Name_");
+        assertThat(result).isEqualTo("MY_PREFIX_MY_NAME_ANOTHER_NAME_4TH_NAME");
     }
 }

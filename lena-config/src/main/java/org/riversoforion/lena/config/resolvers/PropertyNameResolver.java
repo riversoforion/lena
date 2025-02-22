@@ -13,10 +13,10 @@ public class PropertyNameResolver implements NameResolver {
     private static final String SEPARATOR = ".";
 
     @Override
-    public String resolveName(Namespace namespace, String name) {
+    public String resolveName(Namespace namespace, String name, String... additionalNames) {
 
-        NameResolver.validateNotEmpty(name);
-        return joinParts(namespace.resolveProperty(name));
+        String[] names = NameResolver.allValidNames(name, additionalNames);
+        return joinParts(namespace.resolveProperty(names));
     }
 
     protected String joinParts(List<String> parts) {
