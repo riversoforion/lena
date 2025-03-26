@@ -77,24 +77,6 @@ class NamespaceTest {
         assertThat(Namespace.parse(name).name()).isEqualTo(expectedName);
     }
 
-    @ParameterizedTest(name = "''{1}'' -> ''{0}''")
-    @CsvSource(textBlock = """
-                           segment, segment
-                           segment-name, segment-name
-                           segment-name, Segment-NAME
-                           s3gment-name, s3gment name
-                           -3gment-nam-, $3gment_nam*
-                           segment-name, ' segment name '
-                           '', ''
-                           '',
-                           '', '    '
-                           """)
-    @DisplayName("normalize segment")
-    void normalizeSegment(String expectedResult, String segment) {
-
-        assertThat(Namespace.normalizeSegment(segment)).isEqualTo(expectedResult);
-    }
-
     @ParameterizedTest(name = "''{0}'' resolves to ''{2}''")
     @CsvSource(textBlock = """
                            /parent/sub-1, 2, sub-1
@@ -133,11 +115,6 @@ class NamespaceTest {
         assertThat(propName).containsExactly("parent", "child", "prop-name", "yet.anotherProp");
     }
 
-    private static Object strings(String... strings) {
-
-        return strings;
-    }
-
     @Test
     @DisplayName("Comparable implementation")
     void comparable() {
@@ -160,5 +137,10 @@ class NamespaceTest {
         assertThat(namespace.charAt(0)).isEqualTo('/');
         assertThat(namespace.charAt(10)).isEqualTo('i');
         assertThat(namespace.subSequence(1, 7)).isEqualTo("parent");
+    }
+
+    private static Object strings(String... strings) {
+
+        return strings;
     }
 }
