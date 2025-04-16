@@ -3,6 +3,7 @@
  */
 package org.riversoforion.lena.config.resolvers;
 
+import org.riversoforion.lena.config.Name;
 import org.riversoforion.lena.config.NameResolver;
 import org.riversoforion.lena.config.Namespace;
 
@@ -13,10 +14,9 @@ public class PropertyNameResolver implements NameResolver {
     private static final String SEPARATOR = ".";
 
     @Override
-    public String resolveName(Namespace namespace, String name, String... additionalNames) {
+    public String resolveName(Namespace namespace, Name name) {
 
-        String[] names = NameResolver.allValidNames(name, additionalNames);
-        return joinParts(namespace.resolveProperty(names));
+        return joinParts(namespace.resolveProperty(name));
     }
 
     protected String joinParts(List<String> parts) {

@@ -107,12 +107,20 @@ class NamespaceTest {
     }
 
     @Test
-    @DisplayName("property names resolve")
+    @DisplayName("resolveProperty with valid names")
     void resolveProperty() {
 
         Namespace namespace = Namespace.of("parent", "child");
-        List<String> propName = namespace.resolveProperty("prop-name", "yet.anotherProp");
+        List<String> propName = namespace.resolveProperty(Name.of("prop-name", "yet.anotherProp"));
         assertThat(propName).containsExactly("parent", "child", "prop-name", "yet.anotherProp");
+    }
+
+    @Test
+    @DisplayName("resolveProperty with invalid names")
+    void resolveProperty_InvalidNames() {
+
+        Namespace namespace = Namespace.of("parent", "child");
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> namespace.resolveProperty(null));
     }
 
     @Test

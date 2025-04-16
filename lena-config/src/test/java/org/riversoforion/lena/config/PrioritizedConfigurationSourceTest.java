@@ -25,18 +25,18 @@ class PrioritizedConfigurationSourceTest {
 
         Namespace ns = Namespace.of("prefix");
         when(source.getValue(eq(ns), any())).thenReturn(Optional.empty());
-        when(source.getValue(eq(ns), startsWith("existing"))).thenAnswer(invocation -> {
-            String name = invocation.getArgument(1, String.class);
+        when(source.getValue(eq(ns), nameStartsWith("existing"))).thenAnswer(invocation -> {
+            Name name = invocation.getArgument(1, Name.class);
             return Optional.of(name + " value");
         });
 
         PrioritizedConfigurationSource prioritized = new PrioritizedConfigurationSource(List.of(source));
 
-        assertThat(prioritized.getValue(ns, "existing num")).isPresent()
-                                                            .contains("existing num value");
-        assertThat(prioritized.getValue(ns, "existing str")).isPresent()
-                                                            .contains("existing str value");
-        assertThat(prioritized.getValue(ns, "missing num")).isEmpty();
+        assertThat(prioritized.getValue(ns, Name.of("existing num"))).isPresent()
+                                                            .contains("existing-num value");
+        assertThat(prioritized.getValue(ns, Name.of("existing str"))).isPresent()
+                                                            .contains("existing-str value");
+        assertThat(prioritized.getValue(ns, Name.of("missing num"))).isEmpty();
     }
 
     @Test
@@ -49,22 +49,27 @@ class PrioritizedConfigurationSourceTest {
         when(second.getValue(eq(ns), any())).thenReturn(Optional.empty());
         when(third.getValue(eq(ns), any())).thenReturn(Optional.empty());
         // Test scenarios
-        when(first.getValue(ns, "first num")).thenReturn(Optional.of("first value"));
-        when(second.getValue(ns, "second bool")).thenReturn(Optional.of("second value"));
-        when(third.getValue(ns, "third string")).thenReturn(Optional.of("third value"));
+        when(first.getValue(ns, Name.of("first num"))).thenReturn(Optional.of("first value"));
+        when(second.getValue(ns, Name.of("second bool"))).thenReturn(Optional.of("second value"));
+        when(third.getValue(ns, Name.of("third string"))).thenReturn(Optional.of("third value"));
 
         PrioritizedConfigurationSource prioritized = new PrioritizedConfigurationSource(List.of(first, second, third));
 
-        assertThat(prioritized.getValue(ns, "first num")).isPresent()
+        assertThat(prioritized.getValue(ns, Name.of("first num"))).isPresent()
                                                          .contains("first value");
-        assertThat(prioritized.getValue(ns, "second bool")).isPresent()
+        assertThat(prioritized.getValue(ns, Name.of("second bool"))).isPresent()
                                                            .contains("second value");
-        assertThat(prioritized.getValue(ns, "third string")).isPresent()
+        assertThat(prioritized.getValue(ns, Name.of("third string"))).isPresent()
                                                             .contains("third value");
-        assertThat(prioritized.getValue(ns, "fourth num")).isEmpty();
+        assertThat(prioritized.getValue(ns, Name.of("fourth num"))).isEmpty();
 
-        verify(first, times(4)).getValue(eq(ns), anyString());
-        verify(second, times(3)).getValue(eq(ns), anyString());
-        verify(third, times(2)).getValue(eq(ns), anyString());
+        verify(first, times(4)).getValue(eq(ns), any());
+        verify(second, times(3)).getValue(eq(ns), any());
+        verify(third, times(2)).getValue(eq(ns), any());
+    }
+
+    private static Name nameStartsWith(String prefix) {
+
+        return argThat(actual -> actual.segments().getFirst().startsWith(prefix));
     }
 }

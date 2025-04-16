@@ -18,19 +18,19 @@ public class Name implements CharSequence, Comparable<Name> {
 
     public static final String SEPARATOR = "/";
     private static final Pattern NON_ASCII = Pattern.compile("[^\\p{ASCII}]");
-    private static final Pattern LETTERS_AND_NUMBERS = Pattern.compile("[^a-z0-9]+");
+    private static final Pattern NON_LETTERS_OR_NUMBERS = Pattern.compile("[^a-z0-9]+");
 
     private final List<String> rawSegments;
     private final String fullName;
 
     private Name(List<String> segments, boolean allowEmpty) {
 
-        this.rawSegments = segments == null ? List.of() : segments.stream().filter(Name::notEmpty).toList();
+        this.rawSegments = segments == null ? List.of() : segments.stream().filter(Name::notEmpty).flatMap(Name::splitSegment).toList();
         if (rawSegments.isEmpty() && !allowEmpty) {
             throw new IllegalArgumentException("Name must contain at least one segment");
         }
         StringJoiner joiner = new StringJoiner(SEPARATOR);
-        this.rawSegments.stream().flatMap(Name::splitSegment).map(Name::normalizeSegment).filter(Name::notEmpty).forEach(joiner::add);
+        this.rawSegments.stream().map(Name::normalizeSegment).filter(Name::notEmpty).forEach(joiner::add);
         this.fullName = joiner.toString();
     }
 
@@ -45,7 +45,7 @@ public class Name implements CharSequence, Comparable<Name> {
             return "";
         }
         String partiallyNormalized = NON_ASCII.matcher(normalize(segment.trim().toLowerCase(Locale.ROOT), Form.NFD)).replaceAll("");
-        return LETTERS_AND_NUMBERS.matcher(partiallyNormalized).replaceAll("-");
+        return NON_LETTERS_OR_NUMBERS.matcher(partiallyNormalized).replaceAll("-");
     }
 
     private static boolean notEmpty(String segment) {

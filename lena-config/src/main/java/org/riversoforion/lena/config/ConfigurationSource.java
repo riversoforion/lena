@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ConfigurationSource {
 
-    Optional<String> getValue(Namespace namespace, String name);
+    Optional<String> getValue(Namespace namespace, Name name);
 }

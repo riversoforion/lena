@@ -19,14 +19,16 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationPropertiesTest {
 
-    private static final String PROP_NAME_10 = "ten";
-    private static final String PROP_NAME_20 = "twenty";
+    public static final Name PROP_NAME_CONNECTION_TIMEOUT = Name.of("connectionTimeout");
+    public static final Name PROP_NAME_PROJECT = Name.of("project");
+    public static final Name PROP_NAME_NON_EXISTENT = Name.of("nonExistent");
+    private static final Name PROP_NAME_10 = Name.of("ten");
+    private static final Name PROP_NAME_20 = Name.of("twenty");
     private static final Namespace ROOT = Namespace.root();
 
     @Mock
@@ -61,10 +63,10 @@ class ConfigurationPropertiesTest {
     void converter_WithBooleanValues(@Mock ValueConverter converter) {
 
         when(converter.toBoolean("Y")).thenReturn(true);
-        when(source.getValue(any(), anyString())).thenReturn(Optional.of("Y"));
+        when(source.getValue(any(), any())).thenReturn(Optional.of("Y"));
         ConfigurationProperties props = propsWith(converter, null);
 
-        assertThat(props.booleanVal("prop")).isTrue();
+        assertThat(props.booleanVal(Name.of("prop"))).isTrue();
 
         verify(converter).toBoolean("Y");
     }
@@ -73,7 +75,7 @@ class ConfigurationPropertiesTest {
     @DisplayName("ValueConverter is used to convert short values")
     void converter_WithShortValues(@Mock ValueConverter converter) {
 
-        when(converter.toShort(anyString())).thenAnswer(valueParser(Short::parseShort));
+        when(converter.toShort(any())).thenAnswer(valueParser(Short::parseShort));
         mockSourceIntegralValues();
         ConfigurationProperties props = propsWith(converter, null);
 
@@ -88,7 +90,7 @@ class ConfigurationPropertiesTest {
     @DisplayName("ValueConverter is used to convert int values")
     void converter_WithIntValues(@Mock ValueConverter converter) {
 
-        when(converter.toInt(anyString())).thenAnswer(valueParser(Integer::parseInt));
+        when(converter.toInt(any())).thenAnswer(valueParser(Integer::parseInt));
         mockSourceIntegralValues();
         ConfigurationProperties props = propsWith(converter, null);
 
@@ -103,7 +105,7 @@ class ConfigurationPropertiesTest {
     @DisplayName("ValueConverter is used to convert long values")
     void converter_WithLongValues(@Mock ValueConverter converter) {
 
-        when(converter.toLong(anyString())).thenAnswer(valueParser(Long::parseLong));
+        when(converter.toLong(any())).thenAnswer(valueParser(Long::parseLong));
         mockSourceIntegralValues();
         ConfigurationProperties props = propsWith(converter, null);
 
@@ -118,7 +120,7 @@ class ConfigurationPropertiesTest {
     @DisplayName("ValueConverter is used to convert float values")
     void converter_WithFloatValues(@Mock ValueConverter converter) {
 
-        when(converter.toFloat(anyString())).thenAnswer(valueParser(Float::parseFloat));
+        when(converter.toFloat(any())).thenAnswer(valueParser(Float::parseFloat));
         mockSourceFloatValues();
         ConfigurationProperties props = propsWith(converter, null);
 
@@ -133,7 +135,7 @@ class ConfigurationPropertiesTest {
     @DisplayName("ValueConverter is used to convert double values")
     void converter_WithDoubleValues(@Mock ValueConverter converter) {
 
-        when(converter.toDouble(anyString())).thenAnswer(valueParser(Double::parseDouble));
+        when(converter.toDouble(any())).thenAnswer(valueParser(Double::parseDouble));
         mockSourceFloatValues();
         ConfigurationProperties props = propsWith(converter, null);
 
@@ -148,73 +150,73 @@ class ConfigurationPropertiesTest {
     @DisplayName("default values are used properly")
     void defaultValues() {
 
-        when(source.getValue(eq(ROOT), anyString())).thenReturn(Optional.empty());
-        when(source.getValue(eq(ROOT), eq("connectionTimeout"))).thenReturn(Optional.of("60"));
-        Map<String, String> defaults = Map.of("connectionTimeout", "30", "project", "lena-config");
+        when(source.getValue(eq(ROOT), any())).thenReturn(Optional.empty());
+        when(source.getValue(eq(ROOT), eq(PROP_NAME_CONNECTION_TIMEOUT))).thenReturn(Optional.of("60"));
+        Map<Name, String> defaults = Map.of(PROP_NAME_CONNECTION_TIMEOUT, "30", PROP_NAME_PROJECT, "lena-config");
         ConfigurationProperties props = propsWith(null, defaults);
 
         // Verify that a value from the ConfigurationSource takes precedence
-        assertThat(props.stringVal("connectionTimeout"))
+        assertThat(props.stringVal(PROP_NAME_CONNECTION_TIMEOUT))
                 .as("verify value from ConfigurationSource takes precedence")
                 .isEqualTo("60");
         // Verify that a value missing from the ConfigurationSource is found in the defaults
-        assertThat(props.stringVal("project"))
+        assertThat(props.stringVal(PROP_NAME_PROJECT))
                 .as("verify default value is used")
                 .isEqualTo("lena-config");
         // Verify that a value missing from both "falls through" to the missing logic
         assertThatException()
                 .as("verify missing property falls through")
-                .isThrownBy(() -> props.stringVal("nonExistent"));
+                .isThrownBy(() -> props.stringVal(PROP_NAME_NON_EXISTENT));
     }
 
     @Test
     @DisplayName("returnNullForMissing returns null")
     void returnNullForMissingValues() {
 
-        when(source.getValue(eq(ROOT), anyString())).thenReturn(Optional.empty());
-        when(source.getValue(eq(ROOT), eq("connectionTimeout"))).thenReturn(Optional.of("60"));
+        when(source.getValue(eq(ROOT), any())).thenReturn(Optional.empty());
+        when(source.getValue(eq(ROOT), eq(PROP_NAME_CONNECTION_TIMEOUT))).thenReturn(Optional.of("60"));
         ConfigurationProperties props = new TestConfigProps(source);
         props.returnNullForMissing();
 
-        assertThat(props.stringVal("nonExistent")).isNull();
-        assertThat(props.stringVal("connectionTimeout")).isEqualTo("60");
+        assertThat(props.stringVal(PROP_NAME_NON_EXISTENT)).isNull();
+        assertThat(props.stringVal(PROP_NAME_CONNECTION_TIMEOUT)).isEqualTo("60");
     }
 
     @Test
     @DisplayName("throwExceptionForMissing throws exception")
     void throwExceptionForMissingValues() {
 
-        when(source.getValue(eq(ROOT), anyString())).thenReturn(Optional.empty());
-        when(source.getValue(eq(ROOT), eq("connectionTimeout"))).thenReturn(Optional.of("60"));
+        when(source.getValue(eq(ROOT), any())).thenReturn(Optional.empty());
+        when(source.getValue(eq(ROOT), eq(PROP_NAME_CONNECTION_TIMEOUT))).thenReturn(Optional.of("60"));
         ConfigurationProperties props = new TestConfigProps(source);
         props.throwExceptionForMissing();
 
-        assertThatException().isThrownBy(() -> props.stringVal("nonExistent"))
+        assertThatException().isThrownBy(() -> props.stringVal(PROP_NAME_NON_EXISTENT))
                              .isInstanceOf(IllegalArgumentException.class)
-                             .withMessage("No configuration property named nonExistent");
-        assertThat(props.stringVal("connectionTimeout")).isEqualTo("60");
+                             .withMessage("No configuration property named nonexistent");
+        assertThat(props.stringVal(PROP_NAME_CONNECTION_TIMEOUT)).isEqualTo("60");
     }
 
     @Test
     @DisplayName("missing/set/default flags")
     void flagsForMissingSetAndDefault() {
 
-        when(source.getValue(eq(ROOT), anyString())).thenReturn(Optional.empty());
-        when(source.getValue(eq(ROOT), eq("connectionTimeout"))).thenReturn(Optional.of("60"));
-        Map<String, String> defaults = Map.of("connectionTimeout", "30", "project", "lena-config");
+        when(source.getValue(eq(ROOT), any())).thenReturn(Optional.empty());
+        when(source.getValue(eq(ROOT), eq(PROP_NAME_CONNECTION_TIMEOUT))).thenReturn(Optional.of("60"));
+        Map<Name, String> defaults = Map.of(PROP_NAME_CONNECTION_TIMEOUT, "30", PROP_NAME_PROJECT, "lena-config");
         ConfigurationProperties props = propsWith(null, defaults);
 
-        assertThat(props.isMissing("connectionTimeout")).isFalse();
-        assertThat(props.isSet("connectionTimeout")).isTrue();
-        assertThat(props.isDefault("connectionTimeout")).isFalse();
+        assertThat(props.isMissing(PROP_NAME_CONNECTION_TIMEOUT)).isFalse();
+        assertThat(props.isSet(PROP_NAME_CONNECTION_TIMEOUT)).isTrue();
+        assertThat(props.isDefault(PROP_NAME_CONNECTION_TIMEOUT)).isFalse();
 
-        assertThat(props.isMissing("project")).isFalse();
-        assertThat(props.isSet("project")).isFalse();
-        assertThat(props.isDefault("project")).isTrue();
+        assertThat(props.isMissing(PROP_NAME_PROJECT)).isFalse();
+        assertThat(props.isSet(PROP_NAME_PROJECT)).isFalse();
+        assertThat(props.isDefault(PROP_NAME_PROJECT)).isTrue();
 
-        assertThat(props.isMissing("nonExistent")).isTrue();
-        assertThat(props.isSet("nonExistent")).isFalse();
-        assertThat(props.isDefault("nonExistent")).isFalse();
+        assertThat(props.isMissing(PROP_NAME_NON_EXISTENT)).isTrue();
+        assertThat(props.isSet(PROP_NAME_NON_EXISTENT)).isFalse();
+        assertThat(props.isDefault(PROP_NAME_NON_EXISTENT)).isFalse();
     }
 
     private void mockSourceIntegralValues() {
@@ -234,7 +236,7 @@ class ConfigurationPropertiesTest {
         return (invocation) -> parser.apply(invocation.getArgument(0));
     }
 
-    private TestConfigProps propsWith(ValueConverter converter, Map<String, String> defaults) {
+    private TestConfigProps propsWith(ValueConverter converter, Map<Name, String> defaults) {
 
         return new TestConfigProps(source) {
             @Override
@@ -244,7 +246,7 @@ class ConfigurationPropertiesTest {
             }
 
             @Override
-            protected Map<String, String> createDefaults() {
+            protected Map<Name, String> createDefaults() {
 
                 return defaults != null ? defaults : super.createDefaults();
             }

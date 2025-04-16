@@ -50,7 +50,7 @@ public abstract class CompositeConfigurationSource implements ConfigurationSourc
     }
 
     @Override
-    public final Optional<String> getValue(Namespace namespace, String name) {
+    public final Optional<String> getValue(Namespace namespace, Name name) {
 
         return orderedSources(configurationSources).map(wrapper -> wrapper.getValue(namespace, name))
                                                    .filter(Optional::isPresent)
@@ -82,7 +82,7 @@ public abstract class CompositeConfigurationSource implements ConfigurationSourc
         }
 
         @Override
-        public Optional<String> getValue(Namespace namespace, String name) {
+        public Optional<String> getValue(Namespace namespace, Name name) {
 
             return configurationSource.getValue(this.namespace.orElse(namespace), name);
         }

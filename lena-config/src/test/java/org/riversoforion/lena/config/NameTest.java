@@ -38,11 +38,23 @@ class NameTest {
                          arguments("good-segment", strings("good.segment")),
                          arguments("valid-name", strings("valid_name")),
                          arguments("uppercaseallowed", strings("UppercaseAllowed")),
-                         arguments("good-segment/also/good/segment", strings("good-segment", "also/good/segment")),
                          arguments("valid-segment/good-segment", strings("Valid-Segment", "good-segment")),
                          arguments("this-is-fine/this-one-too/tambien-bueno", strings("this-is-fine", "this-one-too", "también_bueno")),
                          arguments("spaces-are-allowed/and-numb3rs/and-pec-al-c-aracter-",
                                    strings("spaces are allowed", "and numb3rs", "and $pec!al c#aracter$")));
+    }
+
+    @Test
+    @DisplayName("factory method 'of' with embedded segments")
+    void of_WithEmbeddedSegments() {
+
+        Name name = Name.of("good-segment", "also/good/segment");
+        assertThat(name.toString()).isEqualTo("good-segment/also/good/segment");
+        assertThat(name.segments()).isEqualTo(List.of("good-segment", "also", "good", "segment"));
+
+        name = Name.of("*./()");
+        assertThat(name.toString()).isEqualTo("-/-");
+        assertThat(name.segments()).isEqualTo(List.of("*.", "()"));
     }
 
     @SuppressWarnings("UnnecessaryStringEscape")
@@ -75,6 +87,13 @@ class NameTest {
 
         assertThatException().isThrownBy(() -> Name.of(new String[0]))
                              .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("factory method 'of' with multiple empty segments")
+    void of_WithMultipleEmptySegments() {
+
+        assertThatException().isThrownBy(() -> Name.of("", "  ", ""));
     }
 
     @ParameterizedTest(name = "''{1}'' -> ''{0}''")

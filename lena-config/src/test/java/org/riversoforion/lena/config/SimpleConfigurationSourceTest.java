@@ -23,14 +23,15 @@ class SimpleConfigurationSourceTest {
     void getValue_DelegatesToResolvers(@Mock NameResolver names, @Mock ValueResolver values) {
 
         Namespace root = Namespace.root();
-        when(names.resolveName(root, "this.prop")).thenReturn("THIS_PROP");
+        Name thisProp = Name.of("this.prop");
+        when(names.resolveName(root, thisProp)).thenReturn("THIS_PROP");
         when(values.resolveValue("THIS_PROP")).thenReturn(Optional.of("some_value"));
 
         SimpleConfigurationSource source = new SimpleConfigurationSource(names, values);
-        Optional<String> value = source.getValue(root, "this.prop");
+        Optional<String> value = source.getValue(root, thisProp);
 
         assertThat(value).contains("some_value");
-        verify(names).resolveName(root, "this.prop");
+        verify(names).resolveName(root, thisProp);
         verify(values).resolveValue("THIS_PROP");
     }
 }

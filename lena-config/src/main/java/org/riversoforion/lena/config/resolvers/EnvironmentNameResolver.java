@@ -3,10 +3,10 @@
  */
 package org.riversoforion.lena.config.resolvers;
 
+import org.riversoforion.lena.config.Name;
 import org.riversoforion.lena.config.NameResolver;
 import org.riversoforion.lena.config.Namespace;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -21,13 +21,9 @@ public class EnvironmentNameResolver implements NameResolver {
     private static final String SEPARATOR = "_";
 
     @Override
-    public String resolveName(Namespace namespace, String name, String... additionalNames) {
+    public String resolveName(Namespace namespace, Name name) {
 
-        String[] allNames = Arrays.stream(NameResolver.allValidNames(name, additionalNames))
-                                  .map(this::sanitize)
-                                  .peek(NameResolver::validateNotEmpty)
-                                  .toArray(String[]::new);
-        List<String> parts = namespace.resolveProperty(allNames);
+        List<String> parts = namespace.resolveProperty(name);
         List<String> normalized = parts.stream().map(this::sanitize).flatMap(this::split).map(this::normalize).toList();
         return String.join(SEPARATOR, normalized);
     }
@@ -39,15 +35,12 @@ public class EnvironmentNameResolver implements NameResolver {
 
     protected Stream<String> split(String part) {
 
-        NameResolver.validateNotEmpty(part);
+        if (part.isEmpty()) {
+            return Stream.of(part);
+        }
         return WORD_FINDER.matcher(part)
                           .results()
-                          .map(MatchResult::group)
-                          .peek(s -> {
-                              if (s.isBlank()) {
-                                  throw new IllegalArgumentException("Invalid environment variable name " + part);
-                              }
-                          });
+                          .map(MatchResult::group);
     }
 
     private String normalize(String part) {

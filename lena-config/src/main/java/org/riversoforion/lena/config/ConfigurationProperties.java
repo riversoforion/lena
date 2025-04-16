@@ -13,8 +13,8 @@ public abstract class ConfigurationProperties {
     private final ConfigurationSource source;
     private final Namespace namespace;
     private final ValueConverter valueConverter;
-    private final Map<String, String> defaults = new HashMap<>();
-    private Function<String, String> defaultsResolver;
+    private final Map<Name, String> defaults = new HashMap<>();
+    private Function<Name, String> defaultsResolver;
     // Cache here for convenience
     private transient final ConfigurationPropertiesRegistry registry = ConfigurationPropertiesRegistry.instance();
 
@@ -39,7 +39,7 @@ public abstract class ConfigurationProperties {
         return new DefaultValueConverter();
     }
 
-    protected Map<String, String> createDefaults() {
+    protected Map<Name, String> createDefaults() {
 
         return Map.of();
     }
@@ -50,8 +50,8 @@ public abstract class ConfigurationProperties {
 
     protected void throwExceptionForMissing() {
 
-        this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (ignored) -> {
-            throw new IllegalArgumentException("No configuration property named " + name);
+        this.defaultsResolver = (name) -> defaults.computeIfAbsent(name, (propName) -> {
+            throw new IllegalArgumentException("No configuration property named " + propName);
         });
     }
 
@@ -65,17 +65,17 @@ public abstract class ConfigurationProperties {
         return namespace;
     }
 
-    public boolean isMissing(String name) {
+    public boolean isMissing(Name name) {
 
         return !isSet(name) && !defaults.containsKey(name);
     }
 
-    public boolean isSet(String name) {
+    public boolean isSet(Name name) {
 
         return sourceVal(name).isPresent();
     }
 
-    public boolean isDefault(String name) {
+    public boolean isDefault(Name name) {
 
         return !isSet(name) && defaults.containsKey(name);
     }
@@ -85,42 +85,42 @@ public abstract class ConfigurationProperties {
         return type.cast(registry.get(namespace));
     }
 
-    protected Optional<String> sourceVal(String name) {
+    protected Optional<String> sourceVal(Name name) {
 
         return source.getValue(namespace, name);
     }
 
-    protected String stringVal(String name) {
+    protected String stringVal(Name name) {
 
         return sourceVal(name).orElseGet(() -> defaultsResolver.apply(name));
     }
 
-    protected boolean booleanVal(String name) {
+    protected boolean booleanVal(Name name) {
 
         return valueConverter.toBoolean(stringVal(name));
     }
 
-    protected short shortVal(String name) {
+    protected short shortVal(Name name) {
 
         return valueConverter.toShort(stringVal(name));
     }
 
-    protected int intVal(String name) {
+    protected int intVal(Name name) {
 
         return valueConverter.toInt(stringVal(name));
     }
 
-    protected long longVal(String name) {
+    protected long longVal(Name name) {
 
         return valueConverter.toLong(stringVal(name));
     }
 
-    protected float floatVal(String name) {
+    protected float floatVal(Name name) {
 
         return valueConverter.toFloat(stringVal(name));
     }
 
-    protected double doubleVal(String name) {
+    protected double doubleVal(Name name) {
 
         return valueConverter.toDouble(stringVal(name));
     }

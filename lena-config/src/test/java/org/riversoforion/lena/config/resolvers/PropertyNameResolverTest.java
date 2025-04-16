@@ -4,9 +4,9 @@
 package org.riversoforion.lena.config.resolvers;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.riversoforion.lena.config.Name;
 import org.riversoforion.lena.config.Namespace;
 
 import java.io.IOException;
@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class PropertyNameResolverTest {
 
@@ -35,11 +34,12 @@ class PropertyNameResolverTest {
                            /, #Not.a.Comment, #Not.a.Comment
                            """)
     @DisplayName("resolveName with valid scenarios")
-    void resolveName_Valid(String namespace, String name, String expected) throws IOException {
+    void resolveName_Valid(String namespace, String rawName, String expected) throws IOException {
 
         Properties testProps = new Properties();
         testProps.load(testProperties());
         Namespace ns = Namespace.parse(namespace);
+        Name name = Name.of(rawName);
         PropertyNameResolver resolver = new PropertyNameResolver();
 
         String result = resolver.resolveName(ns, name);
@@ -47,37 +47,6 @@ class PropertyNameResolverTest {
         assertThat(result).isEqualTo(expected);
         // Make sure that property names we think are valid can actually be used to look up a property
         assertThat(testProps).containsKey(expected);
-    }
-
-    @ParameterizedTest(name = "{0}+{1}")
-    @CsvSource(textBlock = """
-                           /,
-                           /, ''
-                           /,
-                           /, '  '
-                           /my-prefix,
-                           /my-prefix, ''
-                           /my-prefix,
-                           /my-prefix, ''
-                           """)
-    @DisplayName("resolveName with invalid scenarios")
-    void resolveName_Invalid(String namespace, String name) {
-
-        Namespace ns = Namespace.parse(namespace);
-        PropertyNameResolver resolver = new PropertyNameResolver();
-
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> resolver.resolveName(ns, name));
-    }
-
-    @Test
-    @DisplayName("resolveName with additional names")
-    void resolveName_AdditionalNames() {
-
-        Namespace ns = Namespace.parse("my-prefix");
-        PropertyNameResolver resolver = new PropertyNameResolver();
-
-        String result = resolver.resolveName(ns, "my-name", "Another Name", "4th+Name");
-        assertThat(result).isEqualTo("my-prefix.my-name.Another Name.4th+Name");
     }
 
     private InputStream testProperties() {

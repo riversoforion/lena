@@ -86,14 +86,13 @@ public class Namespace implements Comparable<Namespace>, CharSequence {
         return new Namespace(allSegments);
     }
 
-    public List<String> resolveProperty(String... names) {
+    public List<String> resolveProperty(Name propName) {
 
-        String[] propertyNames = Objects.requireNonNullElse(names, new String[0]);
-        if (propertyNames.length == 0) {
-            throw new IllegalArgumentException("Property names cannot be empty");
+        if (propName == null) {
+            throw new IllegalArgumentException("Property name required");
         }
         List<String> property = new ArrayList<>(this.name.segments());
-        property.addAll(asList(propertyNames));
+        property.addAll(propName.segments());
         return property;
     }
 

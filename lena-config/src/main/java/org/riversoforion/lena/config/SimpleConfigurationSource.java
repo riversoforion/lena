@@ -17,7 +17,7 @@ public final class SimpleConfigurationSource implements ConfigurationSource {
     }
 
     @Override
-    public Optional<String> getValue(Namespace namespace, String name) {
+    public Optional<String> getValue(Namespace namespace, Name name) {
 
         String resolvedName = this.names.resolveName(namespace, name);
         return this.values.resolveValue(resolvedName);
