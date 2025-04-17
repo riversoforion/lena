@@ -3,6 +3,6 @@
  */
 
 plugins {
-    id("lena.conventions")
+    id("lena.libraries")
     // semver
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
@@ -17,9 +17,9 @@ public final class SimpleConfigurationSource implements ConfigurationSource {
     }
 
     @Override
-    public Optional<String> getValue(String name) {
+    public Optional<String> getValue(Namespace namespace, Name name) {
 
-        String resolvedName = this.names.resolveName(name);
+        String resolvedName = this.names.resolveName(namespace, name);
         return this.values.resolveValue(resolvedName);
     }
 

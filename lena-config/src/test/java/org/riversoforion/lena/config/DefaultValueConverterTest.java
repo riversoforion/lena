@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
@@ -14,7 +14,6 @@ class DefaultValueConverterTest {
 
     private final DefaultValueConverter converter = new DefaultValueConverter();
 
-    @DisplayName("toBoolean converts input correctly")
     @ParameterizedTest(name = "\"{0}\" -> {1}")
     @CsvSource(textBlock = """
                            TRUE, true
@@ -34,13 +33,13 @@ class DefaultValueConverterTest {
                            '', false
                            , false
                            """)
+    @DisplayName("toBoolean converts input correctly")
     void toBoolean_Valid(String input, boolean expected) {
 
         boolean actual = converter.toBoolean(input);
         assertThat(actual).isEqualTo(expected);
     }
 
-    @DisplayName("toShort converts valid input correctly")
     @ParameterizedTest(name = "\"{0}\" -> {1}")
     @CsvSource(textBlock = """
                            -32768, -32768
@@ -50,13 +49,13 @@ class DefaultValueConverterTest {
                            32767, 32767
                            , 0
                            """)
+    @DisplayName("toShort converts valid input correctly")
     void toShort_Valid(String input, short expected) {
 
         short actual = converter.toShort(input);
         assertThat(actual).isEqualTo(expected);
     }
 
-    @DisplayName("toShort throws exception on invalid input")
     @ParameterizedTest(name = "\"{0}\"")
     @CsvSource(textBlock = """
                            -32769
@@ -64,6 +63,7 @@ class DefaultValueConverterTest {
                            ''
                            other string
                            """)
+    @DisplayName("toShort throws exception on invalid input")
     void toShort_Invalid(String input) {
 
         assertThatException().isThrownBy(() -> converter.toShort(input))

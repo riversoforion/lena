@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.SortedMap;
+import java.util.stream.Stream;
 
 public class PrioritizedConfigurationSource extends CompositeConfigurationSource {
 
@@ -13,14 +14,13 @@ public class PrioritizedConfigurationSource extends CompositeConfigurationSource
         super(sources);
     }
 
-    @Override
-    public Optional<String> getValue(String name) {
+    PrioritizedConfigurationSource(SortedMap<ConfigurationSource, Namespace> sources) {
+        super(sources);
+    }
 
-        return this.configurationSources()
-                   .stream()
-                   .map(source -> source.getValue(name))
-                   .filter(Optional::isPresent)
-                   .findFirst()
-                   .orElse(Optional.empty());
+    @Override
+    protected Stream<NamespacedWrapper> orderedSources(List<NamespacedWrapper> sources) {
+
+        return sources.stream();
     }
 }

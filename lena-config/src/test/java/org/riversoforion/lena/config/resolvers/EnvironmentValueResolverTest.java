@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config.resolvers;
 
@@ -19,8 +19,8 @@ class EnvironmentValueResolverTest {
     private final EnvironmentVariables envVars = new EnvironmentVariables();
     private final EnvironmentValueResolver resolver = new EnvironmentValueResolver();
 
-    @DisplayName("resolveValue finds existing environment variables")
     @Test
+    @DisplayName("resolveValue finds existing environment variables")
     void resolveValue_Found() throws Exception {
 
         envVars.set("RIVER", "Lena")
@@ -31,8 +31,8 @@ class EnvironmentValueResolverTest {
                });
     }
 
-    @DisplayName("resolveValue is empty for non-existent environment variables")
     @Test
+    @DisplayName("resolveValue is empty for non-existent environment variables")
     void resolveValue_NotFound() throws Exception {
 
         envVars.execute(() -> {

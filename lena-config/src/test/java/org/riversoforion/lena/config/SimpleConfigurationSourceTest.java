@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
@@ -18,18 +18,20 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SimpleConfigurationSourceTest {
 
-    @DisplayName("getValue delegates to resolvers")
     @Test
+    @DisplayName("getValue delegates to resolvers")
     void getValue_DelegatesToResolvers(@Mock NameResolver names, @Mock ValueResolver values) {
 
-        when(names.resolveName("this.prop")).thenReturn("THIS_PROP");
+        Namespace root = Namespace.root();
+        Name thisProp = Name.of("this.prop");
+        when(names.resolveName(root, thisProp)).thenReturn("THIS_PROP");
         when(values.resolveValue("THIS_PROP")).thenReturn(Optional.of("some_value"));
 
         SimpleConfigurationSource source = new SimpleConfigurationSource(names, values);
-        Optional<String> value = source.getValue("this.prop");
+        Optional<String> value = source.getValue(root, thisProp);
 
         assertThat(value).contains("some_value");
-        verify(names).resolveName("this.prop");
+        verify(names).resolveName(root, thisProp);
         verify(values).resolveValue("THIS_PROP");
     }
 }

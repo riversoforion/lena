@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package org.riversoforion.lena.config;
 
@@ -19,50 +19,57 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PrioritizedConfigurationSourceTest {
 
-    @DisplayName("getValue from a single source")
     @Test
+    @DisplayName("getValue from a single source")
     void getValue_SingleSource(@Mock ConfigurationSource source) {
 
-        when(source.getValue(any())).thenReturn(Optional.empty());
-        when(source.getValue(startsWith("existing"))).thenAnswer(invocation -> {
-            String name = invocation.getArgument(0, String.class);
+        Namespace ns = Namespace.of("prefix");
+        when(source.getValue(eq(ns), any())).thenReturn(Optional.empty());
+        when(source.getValue(eq(ns), nameStartsWith("existing"))).thenAnswer(invocation -> {
+            Name name = invocation.getArgument(1, Name.class);
             return Optional.of(name + " value");
         });
 
         PrioritizedConfigurationSource prioritized = new PrioritizedConfigurationSource(List.of(source));
 
-        assertThat(prioritized.getValue("existing num")).isPresent()
-                                                        .contains("existing num value");
-        assertThat(prioritized.getValue("existing str")).isPresent()
-                                                        .contains("existing str value");
-        assertThat(prioritized.getValue("missing num")).isEmpty();
+        assertThat(prioritized.getValue(ns, Name.of("existing num"))).isPresent()
+                                                            .contains("existing-num value");
+        assertThat(prioritized.getValue(ns, Name.of("existing str"))).isPresent()
+                                                            .contains("existing-str value");
+        assertThat(prioritized.getValue(ns, Name.of("missing num"))).isEmpty();
     }
 
-    @DisplayName("getValue from multiple sources")
     @Test
+    @DisplayName("getValue from multiple sources")
     void getValue_MultipleSources(@Mock ConfigurationSource first, @Mock ConfigurationSource second, @Mock ConfigurationSource third) {
 
+        Namespace ns = Namespace.of("this", "that");
         // By default, value is "missing"
-        when(first.getValue(any())).thenReturn(Optional.empty());
-        when(second.getValue(any())).thenReturn(Optional.empty());
-        when(third.getValue(any())).thenReturn(Optional.empty());
+        when(first.getValue(eq(ns), any())).thenReturn(Optional.empty());
+        when(second.getValue(eq(ns), any())).thenReturn(Optional.empty());
+        when(third.getValue(eq(ns), any())).thenReturn(Optional.empty());
         // Test scenarios
-        when(first.getValue("first num")).thenReturn(Optional.of("first value"));
-        when(second.getValue("second bool")).thenReturn(Optional.of("second value"));
-        when(third.getValue("third string")).thenReturn(Optional.of("third value"));
+        when(first.getValue(ns, Name.of("first num"))).thenReturn(Optional.of("first value"));
+        when(second.getValue(ns, Name.of("second bool"))).thenReturn(Optional.of("second value"));
+        when(third.getValue(ns, Name.of("third string"))).thenReturn(Optional.of("third value"));
 
         PrioritizedConfigurationSource prioritized = new PrioritizedConfigurationSource(List.of(first, second, third));
 
-        assertThat(prioritized.getValue("first num")).isPresent()
-                                                     .contains("first value");
-        assertThat(prioritized.getValue("second bool")).isPresent()
-                                                       .contains("second value");
-        assertThat(prioritized.getValue("third string")).isPresent()
-                                                        .contains("third value");
-        assertThat(prioritized.getValue("fourth num")).isEmpty();
+        assertThat(prioritized.getValue(ns, Name.of("first num"))).isPresent()
+                                                         .contains("first value");
+        assertThat(prioritized.getValue(ns, Name.of("second bool"))).isPresent()
+                                                           .contains("second value");
+        assertThat(prioritized.getValue(ns, Name.of("third string"))).isPresent()
+                                                            .contains("third value");
+        assertThat(prioritized.getValue(ns, Name.of("fourth num"))).isEmpty();
 
-        verify(first, times(4)).getValue(anyString());
-        verify(second, times(3)).getValue(anyString());
-        verify(third, times(2)).getValue(anyString());
+        verify(first, times(4)).getValue(eq(ns), any());
+        verify(second, times(3)).getValue(eq(ns), any());
+        verify(third, times(2)).getValue(eq(ns), any());
+    }
+
+    private static Name nameStartsWith(String prefix) {
+
+        return argThat(actual -> actual.segments().getFirst().startsWith(prefix));
     }
 }
