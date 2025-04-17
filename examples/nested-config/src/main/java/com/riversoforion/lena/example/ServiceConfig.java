@@ -1,40 +1,47 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package com.riversoforion.lena.example;
 
 import org.riversoforion.lena.config.ConfigurationProperties;
+import org.riversoforion.lena.config.Name;
+import org.riversoforion.lena.config.Namespace;
 
 import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 public class ServiceConfig extends ConfigurationProperties {
 
-    static final String PREFIX = "service";
+    private NetworkConfig net;
 
-    public ServiceConfig() {
+    public ServiceConfig(Namespace ns) {
 
-        super(prioritized(forEnvironment(PREFIX), forSystemProperties(PREFIX)));
-        addNested("net", new NetworkConfig());
+        super(prioritized(forEnvironment(), forSystemProperties()), ns);
         returnNullForMissing();
+    }
+
+    @Override
+    protected void createChildren() {
+
+        this.net = new NetworkConfig(namespace().child("net"));
     }
 
     public NetworkConfig net() {
 
-        return nested("net", NetworkConfig.class);
+        return net;
     }
 
     public String url() {
 
-        return stringVal("url");
+        return stringVal(Name.of("url"));
     }
 
     public String apiKey() {
 
-        return stringVal("api.key");
+        return stringVal(Name.of("api/key"));
     }
 
     public String apiSecret() {
 
-        return stringVal("api.secret");
+        return stringVal(Name.of("api/secret"));
     }
 }

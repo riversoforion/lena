@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package com.riversoforion.lena.example;
 
 import org.riversoforion.lena.config.ConfigurationProperties;
+import org.riversoforion.lena.config.Name;
+import org.riversoforion.lena.config.Namespace;
 
 import static org.riversoforion.lena.config.ConfigurationSources.*;
 
@@ -14,8 +16,13 @@ public class ApplicationConfig extends ConfigurationProperties {
 
     protected ApplicationConfig() {
 
+        this(Namespace.root());
+    }
+
+    ApplicationConfig(Namespace testingNs) {
+
         // Environment variables take precedence
-        super(prioritized(forEnvironment(), forSystemProperties()));
+        super(prioritized(forEnvironment(), forSystemProperties()), testingNs);
         // For demonstration purposes, allow missing values rather than blowing up
         returnNullForMissing();
     }
@@ -29,7 +36,7 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public String serviceUrl() {
 
-        return stringVal("service.url");
+        return stringVal(Name.of("service", "url"));
     }
 
     /**
@@ -41,7 +48,7 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public String serviceApiKey() {
 
-        return stringVal("service.api.key");
+        return stringVal(Name.of("service", "api", "key"));
     }
 
     /**
@@ -53,7 +60,7 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public String serviceApiSecret() {
 
-        return stringVal("service.api.secret");
+        return stringVal(Name.of("service", "api", "secret"));
     }
 
     /**
@@ -65,7 +72,7 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public long netConnectionTimeout() {
 
-        return longVal("net.connection.timeout");
+        return longVal(Name.of("net", "connection", "timeout"));
     }
 
     /**
@@ -77,7 +84,7 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public long netReadTimeout() {
 
-        return longVal("net.read.timeout");
+        return longVal(Name.of("net", "read", "timeout"));
     }
 
     /**
@@ -89,6 +96,6 @@ public class ApplicationConfig extends ConfigurationProperties {
      */
     public boolean isLocalMode() {
 
-        return booleanVal("local.mode");
+        return booleanVal(Name.of("local", "mode"));
     }
 }

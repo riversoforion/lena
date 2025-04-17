@@ -1,34 +1,49 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package com.riversoforion.lena.example;
 
 import org.riversoforion.lena.config.ConfigurationProperties;
+import org.riversoforion.lena.config.Name;
+import org.riversoforion.lena.config.Namespace;
 
 import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 public class ApplicationConfig extends ConfigurationProperties {
 
+    private ServiceConfig service;
+    private NetworkConfig net;
+
     public ApplicationConfig() {
 
-        super(prioritized(forEnvironment(), forSystemProperties()));
+        this(Namespace.root());
+    }
+
+    ApplicationConfig(Namespace testingNs) {
+
+        super(prioritized(forEnvironment(), forSystemProperties()), testingNs);
         returnNullForMissing();
-        addNested(ServiceConfig.PREFIX, new ServiceConfig());
-        addNested(NetworkConfig.PREFIX, new NetworkConfig());
+    }
+
+    @Override
+    protected void createChildren() {
+
+        this.service = new ServiceConfig(namespace().child("service"));
+        this.net = new NetworkConfig(namespace().child("net"));
     }
 
     public ServiceConfig service() {
 
-        return nested(ServiceConfig.PREFIX, ServiceConfig.class);
+        return service;
     }
 
     public NetworkConfig net() {
 
-        return nested(NetworkConfig.PREFIX, NetworkConfig.class);
+        return net;
     }
 
     public boolean isLocalMode() {
 
-        return booleanVal("local");
+        return booleanVal(Name.of("local", "mode"));
     }
 }

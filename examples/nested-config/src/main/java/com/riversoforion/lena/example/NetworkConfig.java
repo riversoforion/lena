@@ -1,29 +1,29 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 package com.riversoforion.lena.example;
 
 import org.riversoforion.lena.config.ConfigurationProperties;
+import org.riversoforion.lena.config.Name;
+import org.riversoforion.lena.config.Namespace;
 
 import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 public class NetworkConfig extends ConfigurationProperties {
 
-    static final String PREFIX = "net";
+    public NetworkConfig(Namespace ns) {
 
-    public NetworkConfig() {
-
-        super(prioritized(forEnvironment(PREFIX), forSystemProperties(PREFIX)));
+        super(prioritized(forEnvironment(), forSystemProperties()), ns);
         returnNullForMissing();
     }
 
     public long readTimeout() {
 
-        return longVal("readTimeout");
+        return longVal(Name.of("read/timeout"));
     }
 
     public long connectTimeout() {
 
-        return longVal("connectTimeout");
+        return longVal(Name.of("connect/timeout"));
     }
 }

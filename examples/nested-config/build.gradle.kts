@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 
 plugins {
@@ -9,4 +9,8 @@ plugins {
 dependencies {
     implementation(project(":examples:common"))
     implementation(project(":lena-config"))
+
+    testImplementation(junitPlatform.junitJupiter)
+    testImplementation(libs.testing.systemStubs)
+    testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
