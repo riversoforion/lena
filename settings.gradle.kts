@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("2.0.0-beta.2")
+    id("dev.aga.gradle.version-catalog-generator") version ("2.0.0-beta.2")
 }
 
 rootProject.name = "lena"
@@ -16,15 +16,14 @@ include(
     "examples:common",
     "examples:simple-config",
     "examples:nested-config",
+    "examples:annotation-config",
 )
 
 dependencyResolutionManagement {
-    @Suppress("UnstableApiUsage")
-    repositories {
+    @Suppress("UnstableApiUsage") repositories {
         mavenCentral()
     }
-    versionCatalogs {
-        // Testing
+    versionCatalogs { // Testing
         generate("junitPlatform") {
             from(toml("testing-junit-bom"))
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
@@ -39,3 +38,5 @@ dependencyResolutionManagement {
         }
     }
 }
+
+include("examples:annotation-config")
