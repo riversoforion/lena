@@ -6,7 +6,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version ("2.0.0-beta.2")
+    id("dev.aga.gradle.version-catalog-generator") version ("3.2.1")
 }
 
 rootProject.name = "lena"
@@ -25,18 +25,22 @@ dependencyResolutionManagement {
     }
     versionCatalogs { // Testing
         generate("junitPlatform") {
-            from(toml("testing-junit-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            fromToml("testing-junit-bom")
+            using {
+                aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            }
         }
         generate("assertJPlatform") {
-            from(toml("testing-assertj-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            fromToml("testing-assertj-bom")
+            using {
+                aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            }
         }
         generate("mockitoPlatform") {
-            from(toml("testing-mockito-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            fromToml("testing-mockito-bom")
+            using {
+                aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            }
         }
     }
 }
-
-include("examples:annotation-config")

@@ -12,7 +12,7 @@ tasks.named<JavaExec>("exec") {
 dependencies {
     implementation(project(":examples:common"))
     implementation(project(":lena-config"))
-    annotationProcessor(":lena-config-annotation-processor")
+    annotationProcessor(project(":lena-config-annotation-processor"))
 
     testImplementation(junitPlatform.junitJupiter)
     testImplementation(libs.testing.systemStubs)

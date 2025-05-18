@@ -1,8 +1,18 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
  */
 
 plugins {
     id("lena.libraries")
     // semver
+}
+
+dependencies {
+    implementation(project(":lena-config"))
+
+    testImplementation(junitPlatform.junitJupiter)
+    testImplementation(assertJPlatform.assertjCore)
+    testImplementation(mockitoPlatform.mockitoJunitJupiter)
+    testImplementation(libs.testing.systemStubs)
+    testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
