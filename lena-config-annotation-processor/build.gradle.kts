@@ -8,11 +8,15 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.aptk)
+    implementation(libs.aptkProcessor)
     implementation(project(":lena-config"))
+    annotationProcessor(libs.aptkProcessor)
 
     testImplementation(junitPlatform.junitJupiter)
     testImplementation(assertJPlatform.assertjCore)
     testImplementation(mockitoPlatform.mockitoJunitJupiter)
     testImplementation(libs.testing.systemStubs)
+    testImplementation(libs.testing.cute)
     testRuntimeOnly(junitPlatform.junitJupiterEngine)
 }
