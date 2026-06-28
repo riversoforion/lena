@@ -10,3 +10,8 @@ repositories {
     gradlePluginPortal() // so that external plugins can be resolved in dependencies section
     mavenCentral()
 }
+
+dependencies {
+    // Lets the precompiled convention plugins apply `org.jetbrains.kotlin.multiplatform`
+    implementation(libs.kotlin.gradlePlugin)
+}
