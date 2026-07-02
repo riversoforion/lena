@@ -10,6 +10,7 @@ project: backward compatibility is explicitly a non-goal, and the build is allow
 broken between steps.
 
 Confirmed decisions:
+
 - **Native targets:** Desktop tier — `jvm`, `macosArm64`, `macosX64`, `linuxX64`, `mingwX64`.
 - **Processors:** Deferred. Scaffold a KSP module but do not implement it now.
 - **API style:** Idiomatic Kotlin — property delegates, drop the global singleton registry,
@@ -59,7 +60,7 @@ Target package stays `org.riversoforion.lena.config`. Move logic into
 Key Java→Kotlin substitutions (the heart of the work):
 
 | Java construct (current) | Kotlin/Common replacement |
-|---|---|
+| --- | --- |
 | `Optional<String>` (`ConfigurationSource`, `ValueResolver`, `sourceVal`) | nullable `String?` |
 | `java.util.StringJoiner` | `joinToString(SEPARATOR)` |
 | `java.util.regex.Pattern` | `kotlin.text.Regex` (works in common) |
@@ -95,6 +96,7 @@ Key Java→Kotlin substitutions (the heart of the work):
   holds its children directly (e.g. `val network = NetworkConfig(source, namespace.child("net"))`),
   instead of `nested(namespace, Type.class)` reaching into a global map.
 - **Property delegates** as the primary Kotlin API on `ConfigurationProperties`:
+
   ```kotlin
   class AppConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
       val serviceUrl: String by string("service", "url")
@@ -102,6 +104,7 @@ Key Java→Kotlin substitutions (the heart of the work):
       val localMode: Boolean by boolean("local", "mode")
   }
   ```
+
   Implement `string()/int()/boolean()/long()/double()/short()/float()` as functions returning
   `ReadOnlyProperty<Any?, T>` (or `PropertyDelegateProvider` to capture the property name).
   Keep `stringVal(Name)` etc. as `protected` methods too, for Java subclasses.
@@ -114,6 +117,8 @@ Key Java→Kotlin substitutions (the heart of the work):
 - **Java-interop pass:** annotate facades with `@JvmStatic`, default-arg ctors with `@JvmOverloads`,
   and add `@JvmName` where Kotlin names collide with Java expectations. The JVM artifact must stay
   usable from Java (examples are currently Java).
+- **Static code analysis:** Integrate [Detekt](https://detekt.dev/) to perform initial and
+  ongoing static analysis.
 
 ## Phase 4 — Tests, examples, scaffolding
 
@@ -122,6 +127,9 @@ Key Java→Kotlin substitutions (the heart of the work):
   `kotlin-test`. Keep JVM-specific tests (system-properties, env via `system-stubs`) in `jvmTest`.
   For env in `commonTest`, inject a fake env provider rather than mutating real env. Add at least
   one `nativeTest` to prove the native targets actually run.
+  - Investigate using [Kotest](https://kotest.io/) for its KMP support.
+  - Investigate more idiomatic mocking libraries, like [MockK](https://mockk.io/) or
+    [Mokkery](https://mokkery.dev/).
 - **Examples:** convert `examples/simple-config` and `examples/nested-config` — keep one as **Java**
   (proves interop) and rewrite one in **Kotlin** (shows delegates). Re-enable the examples
   convention plugin (JVM application) once the core API stabilizes.
