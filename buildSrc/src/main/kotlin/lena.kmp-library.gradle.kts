@@ -28,10 +28,10 @@ kotlin {
         }
     }
 
-    // Desktop-tier native targets.
+    // Desktop-tier native targets (Kotlin Tier 1 + Tier 2; macosX64 deprecated).
     macosArm64()
-    macosX64()
     linuxX64()
+    linuxArm64()
     mingwX64()
 
     sourceSets {

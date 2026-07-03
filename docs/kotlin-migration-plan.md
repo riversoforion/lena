@@ -11,7 +11,7 @@ broken between steps.
 
 Confirmed decisions:
 
-- **Native targets:** Desktop tier — `jvm`, `macosArm64`, `macosX64`, `linuxX64`, `mingwX64`.
+- **Native targets:** Desktop tier — `jvm`, `macosArm64`, `linuxX64`, `linuxArm64`, `mingwX64` (`macosX64` deprecated, replaced by `linuxArm64`).
 - **Processors:** Deferred. Scaffold a KSP module but do not implement it now.
 - **API style:** Idiomatic Kotlin — property delegates, drop the global singleton registry,
   keep `@JvmStatic`/`@JvmOverloads` facades so Java callers stay ergonomic.
