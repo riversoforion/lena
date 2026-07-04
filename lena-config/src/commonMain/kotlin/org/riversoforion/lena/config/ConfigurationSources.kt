@@ -3,10 +3,6 @@
  */
 package org.riversoforion.lena.config
 
-import kotlin.jvm.JvmStatic
-import org.riversoforion.lena.config.resolvers.EnvironmentNameResolver
-import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver
-
 /**
  * Factory for creating [ConfigurationSource] instances.
  *
@@ -15,29 +11,21 @@ import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver
  * - [custom] — composes a [NameResolver] + [ValueResolver] pair
  * - [prioritized] — first-match wins across an ordered list of sources
  *
- * JVM-only source: `ConfigurationSources.forSystemProperties()` (in jvmMain).
+ * JVM-only source: [forSystemProperties][org.riversoforion.lena.config.ConfigurationSources.forSystemProperties]
+ * is a member of the JVM `actual` and callable as `ConfigurationSources.forSystemProperties()` from both
+ * Kotlin and Java on JVM targets.
  */
-public object ConfigurationSources {
+public expect object ConfigurationSources {
 
-    @JvmStatic
-    public fun forEnvironment(): ConfigurationSource =
-        SimpleConfigurationSource(EnvironmentNameResolver(), EnvironmentValueResolver())
+    public fun forEnvironment(): ConfigurationSource
 
-    @JvmStatic
-    public fun custom(names: NameResolver, values: ValueResolver): ConfigurationSource =
-        SimpleConfigurationSource(names, values)
+    public fun custom(names: NameResolver, values: ValueResolver): ConfigurationSource
 
-    @JvmStatic
-    public fun custom(names: NameResolver, values: ValueResolver, namespace: Namespace): ConfigurationSource =
-        CompositeConfigurationSource.namespaced(custom(names, values), namespace)
+    public fun custom(names: NameResolver, values: ValueResolver, namespace: Namespace): ConfigurationSource
 
-    @JvmStatic
     public fun prioritized(
         first: ConfigurationSource,
         second: ConfigurationSource,
         vararg others: ConfigurationSource,
-    ): ConfigurationSource {
-        val all = (listOf(first, second) + others).map { it to null as Namespace? }
-        return PrioritizedConfigurationSource(all)
-    }
+    ): ConfigurationSource
 }
