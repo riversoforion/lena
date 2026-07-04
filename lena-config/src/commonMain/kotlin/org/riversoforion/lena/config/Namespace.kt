@@ -3,6 +3,8 @@
  */
 package org.riversoforion.lena.config
 
+import kotlin.jvm.JvmStatic
+
 /**
  * A normalized configuration namespace (scoping prefix).
  *
@@ -20,13 +22,15 @@ public class Namespace private constructor(
 ) : Comparable<Namespace> {
 
     public companion object {
-        public fun root(): Namespace = of()
+        @JvmStatic public fun root(): Namespace = of()
 
+        @JvmStatic
         public fun of(vararg segments: String): Namespace {
             val flat = segments.filter { it.isNotBlank() }.flatMap { Name.splitSegment(it) }
             return fromSegmentList(flat)
         }
 
+        @JvmStatic
         public fun parse(name: String): Namespace {
             val segments = name.split(Name.SEPARATOR)
             return if (segments.size == 1 && segments[0].isEmpty()) root()

@@ -3,6 +3,7 @@
  */
 package org.riversoforion.lena.config
 
+import kotlin.jvm.JvmStatic
 import org.riversoforion.lena.config.resolvers.EnvironmentNameResolver
 import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver
 
@@ -18,15 +19,19 @@ import org.riversoforion.lena.config.resolvers.EnvironmentValueResolver
  */
 public object ConfigurationSources {
 
+    @JvmStatic
     public fun forEnvironment(): ConfigurationSource =
         SimpleConfigurationSource(EnvironmentNameResolver(), EnvironmentValueResolver())
 
+    @JvmStatic
     public fun custom(names: NameResolver, values: ValueResolver): ConfigurationSource =
         SimpleConfigurationSource(names, values)
 
+    @JvmStatic
     public fun custom(names: NameResolver, values: ValueResolver, namespace: Namespace): ConfigurationSource =
         CompositeConfigurationSource.namespaced(custom(names, values), namespace)
 
+    @JvmStatic
     public fun prioritized(
         first: ConfigurationSource,
         second: ConfigurationSource,

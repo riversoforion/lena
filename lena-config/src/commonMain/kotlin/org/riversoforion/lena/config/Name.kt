@@ -3,6 +3,7 @@
  */
 package org.riversoforion.lena.config
 
+import kotlin.jvm.JvmStatic
 import org.riversoforion.lena.config.internal.normalizeForName
 
 /**
@@ -26,11 +27,13 @@ public class Name private constructor(
 
         private val NON_ALPHANUMERIC: Regex = Regex("[^a-z0-9]+")
 
+        @JvmStatic
         public fun of(vararg segments: String): Name {
             require(segments.isNotEmpty()) { "Name must contain at least one segment" }
             return fromSegments(segments.toList(), allowEmpty = false)
         }
 
+        @JvmStatic
         public fun of(segments: List<String>): Name {
             require(segments.isNotEmpty()) { "Name must contain at least one segment" }
             return fromSegments(segments, allowEmpty = false)
