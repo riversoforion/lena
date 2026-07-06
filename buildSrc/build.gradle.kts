@@ -14,4 +14,6 @@ repositories {
 dependencies {
     // Lets the precompiled convention plugins apply `org.jetbrains.kotlin.multiplatform`
     implementation(libs.kotlin.gradlePlugin)
+    // Lets the precompiled convention plugins apply Detekt
+    implementation(libs.detekt.gradlePlugin)
 }

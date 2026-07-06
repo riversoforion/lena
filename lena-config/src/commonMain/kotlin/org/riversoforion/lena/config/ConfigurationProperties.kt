@@ -36,6 +36,7 @@ import kotlin.properties.ReadOnlyProperty
  * }
  * ```
  */
+@Suppress("TooManyFunctions") // by design: one typed accessor + delegate per primitive type
 public abstract class ConfigurationProperties @JvmOverloads constructor(
     private val source: ConfigurationSource,
     public val namespace: Namespace = Namespace.root(),

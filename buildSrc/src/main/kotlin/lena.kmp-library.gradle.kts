@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
+    id("dev.detekt")
     `maven-publish`
     signing
 }
@@ -53,6 +54,19 @@ kotlin {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     jvmArgs("-XX:+EnableDynamicAgentLoading")
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    // Structural analysis only (no type resolution): avoids the classpath-per-target complexity
+    // of KMP while still catching style, complexity, and naming issues.
+    allRules = false
+    // KMP projects don't use the conventional src/main/kotlin layout; point at all Kotlin source sets.
+    source.setFrom(
+        "src/commonMain/kotlin",
+        "src/jvmMain/kotlin",
+        "src/nativeMain/kotlin",
+    )
 }
 
 // The Kotlin Multiplatform plugin registers a publication per target automatically once
