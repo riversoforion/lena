@@ -20,6 +20,13 @@ kotlin {
     // Enforce explicit visibility & return types on the public API of a library.
     explicitApi()
 
+    // Suppress beta warning for expect/actual on class-like declarations (objects, interfaces,
+    // etc.). This feature is stable enough for use; the warning is noise.
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     // Compile with JDK 21, but emit bytecode runnable on JVM 17+ (the minimum target).
     jvmToolchain(21)
     jvm {
