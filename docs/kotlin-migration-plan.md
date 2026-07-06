@@ -182,3 +182,62 @@ the deferred-processor status. Add KMP build/test commands
 5. Run the Kotlin example — confirms the property-delegate API end to end.
 6. Spot-check `platformGetEnv` + normalization on a native target (e.g. small `nativeTest`
    asserting an env var read and an accented-name normalization).
+
+## Next steps (post-migration)
+
+These items are out of scope for the current overhaul but should be explored once Phases 1–4
+are complete and the KMP foundation is stable.
+
+### FederatedConfigurationSource
+
+Add `FederatedConfigurationSource` to `lena-config`. It routes `(Namespace, Name)` lookups to
+the most-specific registered backend by namespace prefix, making heterogeneous source composition
+explicit and transparent to `ConfigurationProperties` subclasses:
+
+```kotlin
+val appSource = FederatedConfigurationSource()
+appSource.mount(Namespace.root(),      ConfigurationSources.prioritized(env, sysProps))
+appSource.mount(Namespace.of("vault"), vaultSource)
+appSource.mount(Namespace.of("db"),    databaseSource)
+```
+
+This is also the natural seam for future **writable config sources** — a `WritableConfigurationSource`
+sub-interface whose writes the federated source delegates to the appropriate backend.
+
+Decide at design time: immutable-after-construction vs. mutable (supporting runtime source
+changes such as Vault lease refresh).
+
+### ConfigurationContext (separate module)
+
+Explore a `lena-config-context` module that provides an explicit, application-scoped registry
+of `ConfigurationProperties` instances keyed by namespace. This covers the original registry's
+goals — single canonical instance per "configuration coordinates," cross-subsystem access
+without direct coupling — without embedding a hidden global singleton in the library.
+
+Key design questions to resolve:
+
+- Lifecycle: should the context own construction of properties objects, or just track instances
+  that register themselves?
+- Scope: single process-wide context, or composable/hierarchical (child context inherits from
+  parent, useful for multi-tenant or test isolation scenarios)?
+- Integration with `FederatedConfigurationSource`: the context and the federated source likely
+  complement each other — the source handles *where values come from*, the context handles
+  *who holds the canonical view*.
+
+### Kotlin/WASM and Kotlin/JS targets
+
+Investigate whether `lena-config` is viable on Kotlin/WASM and Kotlin/JS targets. Key
+questions:
+
+- **Environment access:** neither WASM nor JS has a POSIX `getenv`. A new `expect`/`actual`
+  seam (or a distinct `wasmJsMain` source set) would be needed — likely returning `null` for
+  all env lookups, or delegating to a platform-provided callback.
+- **String normalization:** browser/WASM runtimes may have Unicode normalization available via
+  the JS `String.prototype.normalize()` API; investigate whether Kotlin/JS can call this to
+  provide true NFD normalization rather than the native best-effort implementation.
+- **Use cases:** config in a browser or WASM context is typically injected at build time or via
+  a backend API rather than read from environment variables — consider whether a read-only,
+  map-backed source is the right primitive for these targets rather than the env/properties
+  resolvers.
+- **Tier:** Kotlin/WASM (`wasmJs`) is a Tier 2 target as of Kotlin 2.x; Kotlin/JS is Tier 1.
+  Evaluate stability and toolchain maturity before committing to either.
