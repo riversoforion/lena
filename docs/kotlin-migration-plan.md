@@ -183,16 +183,203 @@ the deferred-processor status. Add KMP build/test commands
 6. Spot-check `platformGetEnv` + normalization on a native target (e.g. small `nativeTest`
    asserting an env var read and an accented-name normalization).
 
-## Next steps (post-migration)
+## Phase 5 — Complete the KSP Annotation Processor (Foundation)
 
-These items are out of scope for the current overhaul but should be explored once Phases 1–4
-are complete and the KMP foundation is stable.
+Once Phase 4 is complete and the core API is stable, prioritize finishing the deferred annotation
+processor. This is the critical bridge to Java ergonomics and enables property reflection.
+
+### Rationale: KSP Processor
+
+The old Java API requires boilerplate:
+
+```java
+public class AppConfig extends ConfigurationProperties {
+    public AppConfig(ConfigurationSource source) { super(source); }
+    public String serviceUrl() { return stringVal(Name.of("service", "url")); }
+    public int port() { return intVal(Name.of("port")); }
+}
+```
+
+With a KSP processor, users write a clean interface:
+
+```java
+@ExternalConfiguration
+public interface AppConfig {
+    @ConfigurationProperty("service/url")
+    String serviceUrl();
+    
+    @ConfigurationProperty("port")
+    int port();
+}
+```
+
+The processor generates the `ConfigurationProperties` subclass. Benefits:
+
+- **Eliminates boilerplate:** declare, not implement
+- **IDE support:** autocomplete on the interface; properties are discoverable
+- **Reflection:** processor knows all properties (enables doc generation, validation schemas)
+- **Java parity:** matches Spring `@ConfigurationProperties` ergonomics
+- **Kotlin support:** generator can produce data classes with delegates for Kotlin users
+
+### Implementation: KSP Processor
+
+1. Move `@ExternalConfiguration` and `@ConfigurationProperty` from temporary location into stable API.
+2. Create `lena-config-ksp` module with `SymbolProcessor` implementation:
+   - Read `@ExternalConfiguration` interfaces
+   - For each `@ConfigurationProperty` method, derive the `Name` and return type
+   - Generate a `ConfigurationProperties` subclass with typed accessors
+   - Store metadata (property name, type, default value) for reflection
+3. Wire into `lena-config` build as an optional annotation processor (declare as dependency for
+   consumers who want compile-time generation).
+4. Provide a `PropertyRegistry` utility so generated classes can expose all their properties for
+   introspection (used by doc generation, validation schema builders, etc.).
+
+### Verification: KSP Processor
+
+- Processor compiles on JVM + Kotlin 2.4 + KSP 2.4.x
+- Generated code compiles cleanly
+- Generated code passes existing tests (reuse test infrastructure from Phase 4)
+- Example: write a Java interface, run KSP, generated class works end-to-end
+
+---
+
+## Phase 6 — Type Coercion & Complex Types (Power)
+
+After the processor is working, expand value coercion beyond primitives + strings.
+
+### Current Limitation
+
+Today, users work only with primitives + strings:
+
+```kotlin
+val timeoutMs: Int by int("timeout")
+val timeout = Duration.ofMillis(timeoutMs.toLong())  // manual step
+
+val portsStr: String by string("ports")
+val ports = portsStr.split(",").map { it.toInt() }  // manual step
+```
+
+### Target API
+
+```kotlin
+val timeout: Duration by duration("timeout")
+val ports: List<Int> by intList("ports")  // auto-splits on comma
+val logLevel: LogLevel by enum("log", "level")
+val apiUrl: URL by converted("api", "url") { URL(it) }
+```
+
+### Implementation: Type Coercion
+
+1. **Extend `ValueConverter`:** add `@Suppress("TooManyFunctions")` and implement:
+   - `toDate(String?): LocalDate` / `toDateTime(String?): OffsetDateTime`
+   - `toDuration(String?): Duration` (parse ISO-8601 or shorthand like "5s", "2m")
+   - `toUuid(String?): UUID`
+   - `toUrl(String?): URL`
+   - `toEnum(String?, klass: KClass<T>): T`
+
+2. **Add collection support:**
+   - `toIntList(String?): List<Int>` (splits on comma, trim, parse each)
+   - `toStringSet(String?): Set<String>`
+   - `toStringMap(String?): Map<String, String>` (parse key=value pairs)
+
+3. **Add delegate variants** for all new converters (parallel to `int()`, `boolean()`, etc.):
+   - `duration()`, `durationList()`, `duration(default = ...)`
+   - `enum<T>()`, `enum<T>(default = ...)`
+   - `url()`, `uuid()`, `converted { ... }`
+
+4. **Pluggable converters:** expose a way for users to register custom converters:
+
+```kotlin
+class AppConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
+    init {
+        converter.register<CustomType> { CustomType.parse(it) }
+    }
+}
+```
+
+### Verification: Type Coercion
+
+- `Duration by duration("timeout")` correctly parses ISO-8601 and shorthand
+- `List<String> by stringList("hosts")` splits comma-separated values
+- Custom converter hook works: `URL by converted("api/url") { URL(it) }`
+- Edge cases: empty strings, null, invalid formats throw appropriately
+
+---
+
+## Phase 7 — Validation & Observability (Quality)
+
+Add runtime guardrails and visibility into configuration decisions.
+
+### Validation DSL
+
+```kotlin
+class AppConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
+    val port: Int by int("port") validate { it in 1..65535 }
+    val timeout: Duration by duration("timeout") validate { it.seconds > 0 }
+    val name: String by string("app", "name") validate { it.isNotBlank() }
+}
+```
+
+Validation failures throw on property access (lazy, not at construction).
+
+### Implementation: Validation
+
+1. Add `validate { ... }` extension on delegates (returns a wrapper delegate that intercepts access)
+2. Collect validation errors and expose via:
+   - `isValid(): Boolean`
+   - `validationErrors(): List<ValidationError>`
+3. Support for JSR-380 (Jakarta Bean Validation) annotations on generated interfaces
+   (via KSP Phase 5 processor — `@Min(1)`, `@Max(65535)`, etc.)
+
+### Observability Hooks
+
+```kotlin
+class AppConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
+    init {
+        onPropertyRead { name, value, sourceUsed ->
+            logger.debug("Config read: $name=$value from $sourceUsed")
+        }
+        onPropertyMissing { name ->
+            logger.warn("Missing configuration property: $name (using default or null)")
+        }
+        onValidationError { name, error ->
+            logger.error("Validation failed for $name: $error")
+        }
+    }
+}
+```
+
+Use cases:
+
+- **Startup diagnostics:** log all properties read during init, warn about missing ones
+- **Testing:** mock/capture reads to verify expected properties are checked
+- **Metrics:** send to observability system (how many reads from env vs properties, error rates)
+- **Audit:** record which properties are accessed for compliance/debugging
+
+### Implementation: Observability
+
+1. Add optional `onPropertyRead`, `onPropertyMissing`, `onValidationError` callbacks to
+   `ConfigurationProperties`
+2. Invoke callbacks at appropriate points (in delegates, in validators)
+3. Provide a built-in logger callback for convenience
+4. Expose property metadata via Phase 5 processor for static analysis (which properties should
+   exist, which are required, which have defaults)
+
+### Verification: Validation & Observability
+
+- Validation error is thrown on property access if constraint violated
+- Observability callbacks fire with correct name/value/source
+- Integration test: configure a mock observer, assert expected properties are read
+
+---
+
+## Deprioritized: Future Explorations
+
+The following items are valuable but not core to the positioning. Revisit after Phase 7:
 
 ### FederatedConfigurationSource
 
-Add `FederatedConfigurationSource` to `lena-config`. It routes `(Namespace, Name)` lookups to
-the most-specific registered backend by namespace prefix, making heterogeneous source composition
-explicit and transparent to `ConfigurationProperties` subclasses:
+A higher-level abstraction for routing lookups by namespace prefix:
 
 ```kotlin
 val appSource = FederatedConfigurationSource()
@@ -201,43 +388,57 @@ appSource.mount(Namespace.of("vault"), vaultSource)
 appSource.mount(Namespace.of("db"),    databaseSource)
 ```
 
-This is also the natural seam for future **writable config sources** — a `WritableConfigurationSource`
-sub-interface whose writes the federated source delegates to the appropriate backend.
+**Why it's deprioritized:** It's a convenience layer over `PrioritizedConfigurationSource`. Users
+needing namespace-based routing can already do it manually. This is a quality-of-life feature
+worth exploring *after* you've validated that users actually ask for this pattern.
 
-Decide at design time: immutable-after-construction vs. mutable (supporting runtime source
-changes such as Vault lease refresh).
+**When to revisit:** After Phase 7, if you've seen users implement this pattern independently
+multiple times, it becomes a candidate for the library.
 
-### ConfigurationContext (separate module)
+### ConfigurationContext (Application-scoped registry)
 
-Explore a `lena-config-context` module that provides an explicit, application-scoped registry
-of `ConfigurationProperties` instances keyed by namespace. This covers the original registry's
-goals — single canonical instance per "configuration coordinates," cross-subsystem access
-without direct coupling — without embedding a hidden global singleton in the library.
+A `lena-config-context` module providing an explicit, opt-in registry:
 
-Key design questions to resolve:
+```kotlin
+val context = ConfigurationContext()
+val appConfig = AppConfig(source)
+context.register(Namespace.root(), appConfig)
+val retrieved = context.resolve(Namespace.root(), AppConfig::class)
+```
 
-- Lifecycle: should the context own construction of properties objects, or just track instances
-  that register themselves?
-- Scope: single process-wide context, or composable/hierarchical (child context inherits from
-  parent, useful for multi-tenant or test isolation scenarios)?
-- Integration with `FederatedConfigurationSource`: the context and the federated source likely
-  complement each other — the source handles *where values come from*, the context handles
-  *who holds the canonical view*.
+**Why it's deprioritized:** It's a workaround for the global singleton that was intentionally
+removed. Java developers missing the convenience should instead use their existing DI container
+(Spring, Dagger, Koin, Guice). Lena should remain small; lifecycle management belongs in the
+application framework, not the config library.
+
+**Alternative:** After Phase 5, document how to integrate with popular DI containers so users
+can manage `ConfigurationProperties` instances without a global registry.
 
 ### Kotlin/WASM and Kotlin/JS targets
 
-Investigate whether `lena-config` is viable on Kotlin/WASM and Kotlin/JS targets. Key
-questions:
+Expanding to browser/serverless JavaScript contexts.
 
-- **Environment access:** neither WASM nor JS has a POSIX `getenv`. A new `expect`/`actual`
-  seam (or a distinct `wasmJsMain` source set) would be needed — likely returning `null` for
-  all env lookups, or delegating to a platform-provided callback.
-- **String normalization:** browser/WASM runtimes may have Unicode normalization available via
-  the JS `String.prototype.normalize()` API; investigate whether Kotlin/JS can call this to
-  provide true NFD normalization rather than the native best-effort implementation.
-- **Use cases:** config in a browser or WASM context is typically injected at build time or via
-  a backend API rather than read from environment variables — consider whether a read-only,
-  map-backed source is the right primitive for these targets rather than the env/properties
-  resolvers.
-- **Tier:** Kotlin/WASM (`wasmJs`) is a Tier 2 target as of Kotlin 2.x; Kotlin/JS is Tier 1.
-  Evaluate stability and toolchain maturity before committing to either.
+**Why it's deprioritized:** These platforms are out of scope for the "desktop-tier" positioning
+(JVM, macOS, Linux, Windows native). WASM/JS have fundamentally different configuration patterns
+(injected at build time, via environment at runtime, or fetched from a backend API) than what
+`lena-config` optimizes for (reading env vars + system properties).
+
+**Alternative:** If Lena users request WASM/JS support, evaluate it then. But the core value prop
+(native + JVM) is strong enough without it.
+
+---
+
+## Strategic Positioning (Post-Phase 7)
+
+Once Phases 5–7 are complete, Lena's value proposition is:
+
+> **Multiplatform, type-safe configuration with compile-time validation and strong observability.
+> Kotlin-first with excellent Java interop via annotation processing. Built-in support for
+> complex types (Duration, UUID, Lists, Enums). No magic, no global state, full transparency
+> into configuration decisions.**
+
+This positions Lena for:
+- **Kotlin/Native applications** needing configuration (currently unique in this space)
+- **JVM teams** wanting Spring-style ergonomics without Spring overhead
+- **Cloud-native and embedded systems** where observability and validation at config time are critical
+- **Polyglot shops** where Kotlin can coexist with Java without friction
