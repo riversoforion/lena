@@ -10,5 +10,5 @@ import org.riversoforion.lena.config.Namespace
 class NetworkConfig(source: ConfigurationSource, ns: Namespace) : ConfigurationProperties(source, ns) {
 
     val readTimeout: Long by long("read", "timeout")
-    val connectTimeout: Long by long("connect", "timeout")
+    val connectionTimeout: Long by long("connection", "timeout")
 }
