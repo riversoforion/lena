@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2026. Eric McIntyre / Rivers of Orion
  */
-
 plugins {
     id("lena.examples")
+}
+
+application {
+    mainClass = "com.riversoforion.lena.example.NestedConfigExample"
 }
 
 dependencies {
     implementation(project(":examples:common"))
     implementation(project(":lena-config"))
 
-    testImplementation(junitPlatform.junitJupiter)
-    testImplementation(libs.testing.systemStubs)
-    testRuntimeOnly(junitPlatform.junitJupiterEngine)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.systemStubs.jupiter)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }

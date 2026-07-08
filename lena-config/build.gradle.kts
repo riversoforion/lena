@@ -14,6 +14,7 @@ kotlin {
             implementation(libs.mockito.junit.jupiter)
             implementation(libs.systemStubs.jupiter)
             runtimeOnly(libs.junit.jupiter.engine)
+            runtimeOnly(libs.junit.platform.launcher)
         }
     }
 }

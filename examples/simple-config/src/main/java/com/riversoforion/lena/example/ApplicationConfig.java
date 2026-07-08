@@ -11,6 +11,9 @@ import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 /**
  * Exposes a set of environment variables and/or system properties with type-safe accessors.
+ *
+ * <p>Values that are absent from both the environment and system properties cause the accessor
+ * to throw {@link org.riversoforion.lena.config.MissingConfigurationException}.
  */
 public class ApplicationConfig extends ConfigurationProperties {
 
@@ -23,8 +26,6 @@ public class ApplicationConfig extends ConfigurationProperties {
 
         // Environment variables take precedence
         super(prioritized(forEnvironment(), forSystemProperties()), testingNs);
-        // For demonstration purposes, allow missing values rather than blowing up
-        returnNullForMissing();
     }
 
     /**

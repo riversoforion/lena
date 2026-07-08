@@ -21,9 +21,11 @@ public open class EnvironmentNameResolver : NameResolver {
 
     override fun resolveName(namespace: Namespace, name: Name): String {
         val parts = namespace.resolveProperty(name)
+        // Each part contributes exactly one token even when it sanitizes to "" (a fully
+        // symbolic segment, e.g. "()$%") — that positional emptiness is what produces the
+        // leading/trailing/doubled underscores callers rely on (e.g. "()$%" -> "_").
         return parts.map { sanitize(it) }
             .flatMap { split(it) }
-            .filter { it.isNotEmpty() }
             .joinToString(SEPARATOR) { it.uppercase() }
     }
 
