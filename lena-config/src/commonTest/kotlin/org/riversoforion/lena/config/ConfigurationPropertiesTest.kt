@@ -89,6 +89,20 @@ class ConfigurationPropertiesTest {
     }
 
     @Test
+    fun protectedAccessors_DefaultValueOverloads() {
+        val config = JavaStyleConfig(FakeConfigurationSource(mapOf("url" to "http://example.com")))
+
+        // Present value still wins over the default.
+        assertEquals("http://example.com", config.urlOrDefault())
+        // Absent value falls back to the default instead of throwing.
+        assertEquals("http://fallback.example.com", config.missingUrlOrDefault())
+        assertEquals(9090, config.missingPortOrDefault())
+        assertEquals(30_000L, config.missingTimeoutOrDefault())
+        assertEquals(0.75, config.missingRatioOrDefault())
+        assertTrue(config.missingFlagOrDefault())
+    }
+
+    @Test
     fun customConverter_IsUsed() {
         // AlwaysTrueConverter.toBoolean ignores its input, so this only passes if
         // ConfigurationProperties actually routes through the overridden createConverter().
@@ -135,13 +149,19 @@ private class DelegateConfig(source: ConfigurationSource) : ConfigurationPropert
 
 private class JavaStyleConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
     fun url(): String = stringVal(Name.of("url"))
+    fun urlOrDefault(): String = stringVal(Name.of("url"), "http://fallback.example.com")
+    fun missingUrlOrDefault(): String = stringVal(Name.of("does-not-exist"), "http://fallback.example.com")
     fun optionalUrl(): String? = optionalStringVal(Name.of("url"))
     fun missingOptional(): String? = optionalStringVal(Name.of("does-not-exist"))
     fun requiredMissing(): String = stringVal(Name.of("does-not-exist"))
     fun port(): Int = intVal(Name.of("port"))
+    fun missingPortOrDefault(): Int = intVal(Name.of("does-not-exist"), 9090)
     fun timeout(): Long = longVal(Name.of("timeout"))
+    fun missingTimeoutOrDefault(): Long = longVal(Name.of("does-not-exist"), 30_000L)
     fun ratio(): Double = doubleVal(Name.of("ratio"))
+    fun missingRatioOrDefault(): Double = doubleVal(Name.of("does-not-exist"), 0.75)
     fun flag(): Boolean = booleanVal(Name.of("flag"))
+    fun missingFlagOrDefault(): Boolean = booleanVal(Name.of("does-not-exist"), true)
     fun sample(): Short = shortVal(Name.of("sample"))
     fun rate(): Float = floatVal(Name.of("rate"))
 }

@@ -64,20 +64,41 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
 
     /**
      * Resolved string — returns the source value, or throws [MissingConfigurationException].
-     * For nullable access use [optionalStringVal].
+     * For nullable access use [optionalStringVal]; for a fallback value instead of an exception,
+     * use the [stringVal] overload that takes a `default`.
      */
     protected fun stringVal(name: Name): String =
         sourceVal(name) ?: throw MissingConfigurationException(name)
+
+    /** Resolved string — returns [default] instead of throwing if the property is absent. */
+    protected fun stringVal(name: Name, default: String): String = sourceVal(name) ?: default
 
     /** Resolved nullable string — returns `null` if the property is absent. */
     protected fun optionalStringVal(name: Name): String? = sourceVal(name)
 
     protected fun booleanVal(name: Name): Boolean = converter.toBoolean(stringVal(name))
+    protected fun booleanVal(name: Name, default: Boolean): Boolean =
+        sourceVal(name)?.let { converter.toBoolean(it) } ?: default
+
     protected fun shortVal(name: Name): Short = converter.toShort(stringVal(name))
+    protected fun shortVal(name: Name, default: Short): Short =
+        sourceVal(name)?.let { converter.toShort(it) } ?: default
+
     protected fun intVal(name: Name): Int = converter.toInt(stringVal(name))
+    protected fun intVal(name: Name, default: Int): Int =
+        sourceVal(name)?.let { converter.toInt(it) } ?: default
+
     protected fun longVal(name: Name): Long = converter.toLong(stringVal(name))
+    protected fun longVal(name: Name, default: Long): Long =
+        sourceVal(name)?.let { converter.toLong(it) } ?: default
+
     protected fun floatVal(name: Name): Float = converter.toFloat(stringVal(name))
+    protected fun floatVal(name: Name, default: Float): Float =
+        sourceVal(name)?.let { converter.toFloat(it) } ?: default
+
     protected fun doubleVal(name: Name): Double = converter.toDouble(stringVal(name))
+    protected fun doubleVal(name: Name, default: Double): Double =
+        sourceVal(name)?.let { converter.toDouble(it) } ?: default
 
     // -------------------------------------------------------------------------
     // Property delegates — Kotlin API
