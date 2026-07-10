@@ -304,6 +304,78 @@ class AppConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
 - Custom converter hook works: `URL by converted("api/url") { URL(it) }`
 - Edge cases: empty strings, null, invalid formats throw appropriately
 
+### Cross-Property Defaults
+
+A default value should be able to reference another property's resolved value instead of a
+literal — e.g. "default `service.timeout` to whatever `connection.timeout` resolved to."
+
+**The eager technique already works today, with zero framework changes.** `default: T` is a plain
+value evaluated at the delegate's/accessor's call site, and properties resolve in Kotlin
+declaration order, so an earlier sibling property's *value* is simply usable as a later property's
+default:
+
+```kotlin
+class NetworkConfig(source: ConfigurationSource, ns: Namespace) : ConfigurationProperties(source, ns) {
+    val connectionTimeout: Long by long("connection", "timeout", default = 5_000L)
+    // Resolves connectionTimeout's value right here, at construction time.
+    val handshakeTimeout: Long by long("handshake", "timeout", default = connectionTimeout)
+}
+```
+
+Same trick in Java — `default` there is just a method argument:
+
+```java
+public long handshakeTimeout() {
+    return longVal(Name.of("handshake", "timeout"), connectionTimeout());
+}
+```
+
+This should be **documented** (README/CLAUDE.md `Extending ConfigurationProperties` section) as
+the go-to pattern — it needs no new API.
+
+**Add a lazy overload for cases the eager technique can't cover:**
+
+- Referencing a property declared *later* in the same class (declaration order makes this a
+  compile error with the eager technique — the sibling isn't initialized yet).
+- A default that should reflect the referenced property's value if it could change after
+  construction (not a concern for the current design — `ConfigurationSource` reads are already
+  effectively point-in-time per access — but worth deciding explicitly rather than assuming).
+
+```kotlin
+protected fun long(vararg segments: String, default: () -> Long): ReadOnlyProperty<Any?, Long>
+```
+
+Add as a genuine second overload alongside `default: Long` (arity-based overloading, same pattern
+used for the Java accessor defaults added in Phase 4) — not a replacement. Most call sites want the
+simple eager form; the lambda form is for the forward-reference/deferred case specifically.
+
+**Biggest open design question: scope.** Both techniques above only reach properties on `this` (or
+an object already in scope via closure). Real configs are trees of independently-constructed
+`ConfigurationProperties` objects (see the `nested-config` example — `ServiceConfig` and the
+top-level `net` are siblings, each independently constructed, sharing only a `ConfigurationSource`).
+Referencing a value *across* that object boundary (e.g. a child's default falling back to a
+value on its parent, or on an unrelated sibling) needs one of:
+
+- **Explicit wiring (works today, no new API):** thread the needed value through the constructor
+  as a plain parameter, e.g. `ServiceConfig(source, ns, fallbackTimeout = appConnectionTimeout)`.
+  Verbose for deep trees, but requires nothing new and keeps the "no hidden state" design intact.
+- **A `default` lambda that closes over a passed-in parent/sibling reference:**
+  `default = { parent.connectionTimeout }` — still just explicit constructor wiring, but the
+  lambda form makes it read better and defers evaluation. This is likely the sweet spot: no new
+  lookup/registry machinery, just the lazy overload above combined with normal closures.
+- **A namespace-relative reference resolved through the shared `ConfigurationSource`** (closer to
+  Spring's `${other.prop}` string interpolation) — this is a materially bigger feature: it means
+  parsing raw source *values* for a reference syntax, resolving that reference against the same
+  `ConfigurationSource` the reading property uses, and deciding what happens on cycles or a
+  reference to a property that's itself missing/defaulted. Only pursue this if the explicit-wiring
+  pattern above proves too awkward in practice — it's a lot of design surface (parsing, cycle
+  detection, error reporting) for a use case explicit wiring already covers.
+
+**Recommendation:** ship the lazy `default: () -> T` overload and document both techniques (eager
+value, lazy closure over an explicitly-passed reference) as Phase 6 work. Treat the
+namespace-relative string-interpolation approach as a *separate*, larger, and lower-priority
+feature — revisit only if real usage shows the explicit-wiring pattern is insufficient.
+
 ---
 
 ## Phase 7 — Validation & Observability (Quality)
@@ -330,6 +402,50 @@ Validation failures throw on property access (lazy, not at construction).
    - `validationErrors(): List<ValidationError>`
 3. Support for JSR-380 (Jakarta Bean Validation) annotations on generated interfaces
    (via KSP Phase 5 processor — `@Min(1)`, `@Max(65535)`, etc.)
+
+### Restoring `isDefault` — Design Tension
+
+The pre-Kotlin design had `isDefault(Name): Boolean`, backed by a `createDefaults(): Map<Name, String>`
+registered up front — so the answer was available for *any* `Name` at *any* time, whether or not
+the property had been read yet. The Phase 3 redesign deliberately dropped the up-front defaults
+map (it was map-based indirection the property-delegate redesign was explicitly moving away from),
+and with it went `isDefault`. `isMissing`/`isSet` survived because they only need a raw
+`source.getValue(namespace, name) == null` check — no registered state required.
+
+**Rejected approach: track outcome at access time.** The obvious-seeming fix is to have each
+delegate/accessor record `SET` / `DEFAULT` / `MISSING` into an internal `Map<Name, Outcome>` the
+moment it's read, and have `isDefault(name)` consult that map. This was the first idea floated for
+this phase, but it has a real semantic gap versus the old behavior: `isDefault(name)` can only
+answer for properties that have *already been read* through their delegate/accessor at least once.
+Ask about an unread property and there's nothing to report — silently wrong (returns `false` for a
+property that data *would* default if read) or requires throwing/returning `Optional`, either of
+which is worse than the thing being replaced. This is why the design isn't settled yet — flagging
+it explicitly here rather than shipping the first idea that compiles.
+
+**Better approach: register at declaration time, decide at query time.** The two concerns —
+"was a default declared for this `Name`" and "is the source currently missing" — don't need to be
+answered by the same mechanism, and only the second one is genuinely dynamic:
+
+- Every delegate/accessor overload that takes a `default` argument already runs *eagerly*, in
+  declaration order, at construction time (see Phase 6's cross-property-defaults section — this is
+  the same eagerness that already makes `default = connectionTimeout` work). That same eager call
+  can register `name` into an internal `MutableSet<Name>` (or `Map<Name, Any?>`, if the default
+  value itself is worth exposing for introspection/doc generation) — no reflection, no hidden
+  global state, purely a side effect of construction that's already happening.
+- `isDefault(name)` then becomes: `isMissing(name) && name in declaredDefaults`. No per-access
+  tracking, no "unread property" gap — it's answerable immediately after construction, exactly
+  like the old registered-defaults-map behavior, without reintroducing a pre-registered map of
+  *values* (only of *which names have a default*, which the delegate/accessor call already knows).
+
+This composes cleanly with the Observability Hooks below — `onPropertyRead` can report the same
+`SET` / `DEFAULT` / `MISSING` classification computed via `isDefault`/`isMissing` at read time,
+rather than needing its own separate tracking.
+
+**Open question for implementation time:** should `declaredDefaults` also store the default
+*value* (enabling `defaultValue(name): Any?` for doc/schema generation via the Phase 5 KSP
+processor), or just membership? Leaning toward storing the value — it's nearly free once you're
+already registering the name, and directly useful for the property-metadata/doc-generation use
+case Phase 5 already wants.
 
 ### Observability Hooks
 
@@ -438,6 +554,7 @@ Once Phases 5–7 are complete, Lena's value proposition is:
 > into configuration decisions.**
 
 This positions Lena for:
+
 - **Kotlin/Native applications** needing configuration (currently unique in this space)
 - **JVM teams** wanting Spring-style ergonomics without Spring overhead
 - **Cloud-native and embedded systems** where observability and validation at config time are critical
