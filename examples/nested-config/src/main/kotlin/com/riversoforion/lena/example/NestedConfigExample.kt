@@ -28,16 +28,17 @@ class NestedConfigExample : ExampleApplication() {
 
             Run with environment variables or system properties set. The top-level `net` and the
             `service`-nested `net` are independent configuration properties and must each be
-            supplied separately. The following configuration properties are supported:
-                Environment Variable            System Property                  Type
-                SERVICE_URL                     service.url                      string
-                SERVICE_API_KEY                 service.api.key                  string
-                SERVICE_API_SECRET              service.api.secret               string
-                SERVICE_NET_READ_TIMEOUT        service.net.read.timeout         long
-                SERVICE_NET_CONNECTION_TIMEOUT  service.net.connection.timeout   long
-                NET_READ_TIMEOUT                net.read.timeout                 long
-                NET_CONNECTION_TIMEOUT          net.connection.timeout           long
-                LOCAL_MODE                      local.mode                       flag
+            supplied separately if you want to override their defaults. The following
+            configuration properties are supported:
+                Environment Variable            System Property                  Type    Default
+                SERVICE_URL                     service.url                      string  (required)
+                SERVICE_API_KEY                 service.api.key                  string  (required)
+                SERVICE_API_SECRET              service.api.secret               string  (required)
+                SERVICE_NET_READ_TIMEOUT        service.net.read.timeout         long    5000
+                SERVICE_NET_CONNECTION_TIMEOUT  service.net.connection.timeout   long    5000
+                NET_READ_TIMEOUT                net.read.timeout                 long    5000
+                NET_CONNECTION_TIMEOUT          net.connection.timeout           long    5000
+                LOCAL_MODE                      local.mode                       flag    (required)
 
             """.trimIndent()
         )
