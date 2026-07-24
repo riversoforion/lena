@@ -46,7 +46,7 @@ public class AppConfig extends ConfigurationProperties {
 | Module | Status | Purpose |
 | --- | --- | --- |
 | `lena-config` | **Active** | Core configuration library (Kotlin Multiplatform: `commonMain`/`jvmMain`/`nativeMain`) |
-| `lena-config-ksp` | Scaffold only | KSP module for `@ExternalConfiguration` processing — compiles and wires in, generates nothing yet |
+| `lena-config-ksp` | Scaffold only | KSP module for `@ExternalConfiguration` processing — compiles and wires in, generates nothing yet. **Note:** KSP is a `kotlinc`-only mechanism; pure-Java, `javac`-only builds (no Kotlin Gradle plugin) will not be able to use it — see [`docs/kotlin-migration-plan.md`](docs/kotlin-migration-plan.md#implementation-ksp-processor) |
 | `examples/common`, `examples/simple-config`, `examples/nested-config` | **Active** | Runnable usage examples (see below) |
 | `lena-config-aws-secretsmanager`, `lena-config-cache`, `lena-config-consul`, `lena-config-dotenv`, `lena-config-etcd`, `lena-config-sql`, `lena-config-zookeeper`, `lena-junit5` | Placeholder | Empty — not yet implemented |
 

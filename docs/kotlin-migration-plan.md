@@ -231,6 +231,15 @@ The processor generates the `ConfigurationProperties` subclass. Benefits:
    - Store metadata (property name, type, default value) for reflection
 3. Wire into `lena-config` build as an optional annotation processor (declare as dependency for
    consumers who want compile-time generation).
+   - **`javac`/APT incompatibility:** KSP is a `kotlinc`-only mechanism — it cannot be registered
+     with, or invoked by, plain `javac`/`javax.annotation.processing`. Consumers on a pure-Java,
+     `javac`-only build (no Kotlin Gradle plugin at all) cannot use `lena-config-ksp`; they must
+     apply `kotlin("jvm")` (or `multiplatform`) and add `ksp(project(":lena-config-ksp"))` so
+     `kotlinc` compiles the module instead — even if every `@ExternalConfiguration` interface is
+     written in `.java`. This is a Kotlin *compiler*-toolchain dependency, not a Kotlin
+     *source-language* one, but it is a real barrier for teams that refuse to add the Kotlin
+     Gradle plugin. A separate, `javac`-compatible APT processor is tracked as a deferred,
+     community-driven enhancement (see "Deprioritized: Future Explorations" below).
 4. Provide a `PropertyRegistry` utility so generated classes can expose all their properties for
    introspection (used by doc generation, validation schema builders, etc.).
 
@@ -529,6 +538,29 @@ application framework, not the config library.
 
 **Alternative:** After Phase 5, document how to integrate with popular DI containers so users
 can manage `ConfigurationProperties` instances without a global registry.
+
+### APT processor (Java-toolchain-only support)
+
+A `lena-config-apt` module implementing the same generation as `lena-config-ksp`, but built on
+plain `javax.annotation.processing` (`Processor`/`RoundEnvironment`), so it can run under a
+`javac`-only build with no Kotlin Gradle plugin applied at all.
+
+**Why it's deprioritized:** KSP and `javac`'s APT are two independent, structurally different
+SPIs (different symbol models, code-generation backends, incremental-compilation models, and test
+harnesses) — dual-maintaining both means two implementations that must be kept behaviorally
+identical for every future `@ExternalConfiguration`/`@ConfigurationProperty` feature (Phases 6–7
+both extend processor-driven metadata), with real risk of drift and no shared compiler to catch
+it. For a learning/experimentation project that has already deprioritized backward compatibility,
+that ongoing tax isn't justified without evidence that the KSP-only path (which only requires
+consumers to add the Kotlin *compiler* toolchain, not to write Kotlin source) is a hard blocker
+for real users. Tracked as [issue #12](https://github.com/riversoforion/lena/issues/12) — react
+or comment there to register demand for this feature.
+
+**When to revisit:** If real usage shows the `kotlin("jvm")` + `ksp(...)` toolchain requirement is
+a hard blocker for a meaningful segment of pure-Java consumers. Extract the annotation-model-
+independent logic (`Name`/type derivation rules, code-generation templates) out of
+`lena-config-ksp` into a shared, processor-agnostic layer first, so the APT processor can be a
+thin `Processor` adapter over that shared logic rather than a parallel reimplementation.
 
 ### Kotlin/WASM and Kotlin/JS targets
 

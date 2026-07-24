@@ -43,11 +43,10 @@ The root project is `lena`. Gradle subprojects:
 
 | Module | Status | Purpose |
 | --- | --- | --- |
-| `lena-config-api` | Active | Core API (Name, Namespace, PropertyRegistry, Annotations). Kotlin Multiplatform. |
-| `lena-config` | Active | Main configuration library (Kotlin Multiplatform: `commonMain`/`jvmMain`/`nativeMain`). |
-| `lena-config-ksp` | Active | KSP processor for `@ExternalConfiguration` (JVM only). Generates implementation classes for interfaces. |
+| `lena-config` | Active | Core configuration library (Kotlin Multiplatform: `commonMain`/`jvmMain`/`nativeMain`) |
+| `lena-config-ksp` | Scaffold only | KSP module for `@ExternalConfiguration` processing — compiles and wires in, but generates nothing yet (deferred; see migration plan Phase 5). KSP is `kotlinc`-only — consumers on a `javac`-only build (no Kotlin Gradle plugin) cannot use it; see migration plan Phase 5 and "Deprioritized: Future Explorations" |
 | `examples/common` | Active | Shared Java base class (`ExampleApplication`) for runnable examples |
-| `examples/simple-config` | Active | Java example — demonstrates KSP generated implementation and JVM interop |
+| `examples/simple-config` | Active | Java example — proves JVM interop against the Kotlin library |
 | `examples/nested-config` | Active | Kotlin example — demonstrates property delegates and explicit nested composition |
 | `lena-config-aws-secretsmanager`, `lena-config-cache`, `lena-config-consul`, `lena-config-dotenv`, `lena-config-etcd`, `lena-config-sql`, `lena-config-zookeeper`, `lena-junit5` | Placeholder | Empty — not yet implemented |
 
@@ -101,8 +100,6 @@ The design separates *naming* from *lookup* and composes them into sources.
     `long`, `float`, `double`).
   - **Java**: protected accessor methods — `stringVal(Name)`, `intVal(Name)`, `booleanVal(Name)`,
     etc., plus `sourceVal`/`optionalStringVal` for nullable raw access.
-  - **Annotation Processing (KSP)**: interfaces annotated with `@ExternalConfiguration` and
-    `@ConfigurationProperty` can have implementations automatically generated (e.g., `AppConfigImpl`).
   - Non-nullable delegates/accessors throw `MissingConfigurationException` when absent and no
     default is given; nullable (`optional*`) variants return `null`.
 - **`MissingConfigurationException`** — Thrown by non-nullable accessors on a missing value.
