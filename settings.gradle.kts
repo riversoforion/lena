@@ -9,12 +9,12 @@ plugins {
 
 rootProject.name = "lena"
 include(
-    "lena-config-api",
     "lena-config",
+    "lena-config-api",
     "lena-config-ksp",
     "examples:common",
-    "examples:simple-config",
     "examples:nested-config",
+    "examples:simple-config",
 )
 
 dependencyResolutionManagement {
