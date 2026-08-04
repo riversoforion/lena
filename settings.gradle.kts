@@ -9,6 +9,7 @@ plugins {
 
 rootProject.name = "lena"
 include(
+    "lena-config-api",
     "lena-config",
     "lena-config-ksp",
     "examples:common",

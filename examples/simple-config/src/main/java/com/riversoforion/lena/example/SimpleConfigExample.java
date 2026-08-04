@@ -4,10 +4,15 @@
 package com.riversoforion.lena.example;
 
 import java.io.PrintStream;
+import org.riversoforion.lena.config.Namespace;
+import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 public class SimpleConfigExample extends ExampleApplication {
 
-    private final ApplicationConfig config = new ApplicationConfig();
+    private final ApplicationConfig config = new ApplicationConfigImpl(
+        prioritized(forEnvironment(), forSystemProperties()),
+        Namespace.root()
+    );
 
     public static void main(String[] args) {
 

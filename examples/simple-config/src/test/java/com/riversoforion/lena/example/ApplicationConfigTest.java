@@ -13,6 +13,7 @@ import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.riversoforion.lena.config.ConfigurationSources.*;
 
 @ExtendWith(SystemStubsExtension.class)
 class ApplicationConfigTest {
@@ -31,7 +32,10 @@ class ApplicationConfigTest {
                .set("ENVVARS_NET_CONNECTION_TIMEOUT", "1000")
                .set("ENVVARS_NET_READ_TIMEOUT", "5000")
                .set("ENVVARS_LOCAL_MODE", "Y");
-        ApplicationConfig config = new ApplicationConfig(Namespace.of("envvars"));
+        ApplicationConfig config = new ApplicationConfigImpl(
+            prioritized(forEnvironment(), forSystemProperties()),
+            Namespace.of("envvars")
+        );
 
         assertEquals("http://localhost:8080", config.serviceUrl());
         assertEquals("apiKey", config.serviceApiKey());
@@ -50,7 +54,10 @@ class ApplicationConfigTest {
                 .set("sysprops.net.connection.timeout", "1000")
                 .set("sysprops.net.read.timeout", "5000")
                 .set("sysprops.local.mode", "on");
-        ApplicationConfig config = new ApplicationConfig(Namespace.of("sysprops"));
+        ApplicationConfig config = new ApplicationConfigImpl(
+            prioritized(forEnvironment(), forSystemProperties()),
+            Namespace.of("sysprops")
+        );
 
         assertEquals("http://localhost:8080", config.serviceUrl());
         assertEquals("apiKey", config.serviceApiKey());
@@ -74,7 +81,10 @@ class ApplicationConfigTest {
                .set("MIXED_NET_CONNECTION_TIMEOUT", "2000")
                .set("MIXED_NET_READ_TIMEOUT", "5000")
                .set("MIXED_LOCAL_MODE", "TRUE");
-        ApplicationConfig config = new ApplicationConfig(Namespace.of("mixed"));
+        ApplicationConfig config = new ApplicationConfigImpl(
+            prioritized(forEnvironment(), forSystemProperties()),
+            Namespace.of("mixed")
+        );
 
         assertEquals("http://localhost:8080", config.serviceUrl());
         assertEquals("apiKey", config.serviceApiKey());

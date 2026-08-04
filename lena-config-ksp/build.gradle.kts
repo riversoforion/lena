@@ -24,7 +24,9 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":lena-config"))
+    implementation(project(":lena-config-api"))
+    implementation(libs.kotlinpoet)
+    implementation(libs.kotlinpoet.ksp)
     compileOnly(libs.ksp.symbol.processing.api)
 }
 

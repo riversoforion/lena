@@ -3,6 +3,7 @@
  */
 plugins {
     id("lena.examples")
+    alias(libs.plugins.ksp)
 }
 
 application {
@@ -10,8 +11,10 @@ application {
 }
 
 dependencies {
+    add("ksp", project(":lena-config-ksp"))
     implementation(project(":examples:common"))
     implementation(project(":lena-config"))
+    implementation(project(":lena-config-api"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj.core)

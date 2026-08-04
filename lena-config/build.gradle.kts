@@ -4,10 +4,14 @@
 
 plugins {
     id("lena.kmp-library")
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
     sourceSets {
+        commonMain.dependencies {
+            api(project(":lena-config-api"))
+        }
         jvmTest.dependencies {
             implementation(libs.junit.jupiter)
             implementation(libs.assertj.core)
@@ -17,4 +21,9 @@ kotlin {
             runtimeOnly(libs.junit.platform.launcher)
         }
     }
+}
+
+dependencies {
+    add("kspJvm", project(":lena-config-ksp"))
+    add("kspJvmTest", project(":lena-config-ksp"))
 }

@@ -10,6 +10,7 @@ junitPlatform = "1.11.0"
 assertj = "3.26.3"
 mockito = "5.13.0"
 systemStubs = "2.1.6"
+kotlinpoet = "2.0.0"
 
 [libraries]
 # JVM-only test stack (jvmTest source set)
@@ -28,6 +29,8 @@ ksp-symbol-processing-api = { group = "com.google.devtools.ksp", name = "symbol-
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 # Allows buildSrc convention plugins to apply Detekt
 detekt-gradlePlugin = { group = "dev.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

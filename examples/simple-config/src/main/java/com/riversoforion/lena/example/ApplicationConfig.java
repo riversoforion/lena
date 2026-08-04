@@ -1,13 +1,10 @@
 /*
- * Copyright (c) 2024-2025. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2026. Eric McIntyre / Rivers of Orion
  */
 package com.riversoforion.lena.example;
 
-import org.riversoforion.lena.config.ConfigurationProperties;
-import org.riversoforion.lena.config.Name;
-import org.riversoforion.lena.config.Namespace;
-
-import static org.riversoforion.lena.config.ConfigurationSources.*;
+import org.riversoforion.lena.config.annotations.ConfigurationProperty;
+import org.riversoforion.lena.config.annotations.ExternalConfiguration;
 
 /**
  * Exposes a set of environment variables and/or system properties with type-safe accessors.
@@ -15,88 +12,66 @@ import static org.riversoforion.lena.config.ConfigurationSources.*;
  * <p>Values that are absent from both the environment and system properties cause the accessor
  * to throw {@link org.riversoforion.lena.config.MissingConfigurationException}.
  */
-public class ApplicationConfig extends ConfigurationProperties {
-
-    protected ApplicationConfig() {
-
-        this(Namespace.root());
-    }
-
-    ApplicationConfig(Namespace testingNs) {
-
-        // Environment variables take precedence
-        super(prioritized(forEnvironment(), forSystemProperties()), testingNs);
-    }
+@ExternalConfiguration
+public interface ApplicationConfig {
 
     /**
-     * Service URL.
+     * service/url
      * <ul>
-     *     <li>Environment variable: {@code SERVICE_URL}</li>
-     *     <li>System property: {@code service.url}</li>
+     * <li>Environment Variable: <code>SERVICE_URL</code></li>
+     * <li>System Property: <code>service.url</code></li>
      * </ul>
      */
-    public String serviceUrl() {
-
-        return stringVal(Name.of("service", "url"));
-    }
+    @ConfigurationProperty("service/url")
+    String serviceUrl();
 
     /**
-     * Service API key.
+     * service/api/key
      * <ul>
-     *     <li>Environment variable: {@code SERVICE_API_KEY}</li>
-     *     <li>System property: {@code service.api.key}</li>
+     * <li>Environment Variable: <code>SERVICE_API_KEY</code></li>
+     * <li>System Property: <code>service.api.key</code></li>
      * </ul>
      */
-    public String serviceApiKey() {
-
-        return stringVal(Name.of("service", "api", "key"));
-    }
+    @ConfigurationProperty("service/api/key")
+    String serviceApiKey();
 
     /**
-     * Service API secret.
+     * service/api/secret
      * <ul>
-     *     <li>Environment variable: {@code SERVICE_API_SECRET}</li>
-     *     <li>System property: {@code service.api.secret}</li>
+     * <li>Environment Variable: <code>SERVICE_API_SECRET</code></li>
+     * <li>System Property: <code>service.api.secret</code></li>
      * </ul>
      */
-    public String serviceApiSecret() {
-
-        return stringVal(Name.of("service", "api", "secret"));
-    }
+    @ConfigurationProperty("service/api/secret")
+    String serviceApiSecret();
 
     /**
-     * Network connection timeout (in milliseconds).
+     * net/connection/timeout
      * <ul>
-     *     <li>Environment variable: {@code NET_CONNECTION_TIMEOUT}</li>
-     *     <li>System property: {@code net.connection.timeout}</li>
+     * <li>Environment Variable: <code>NET_CONNECTION_TIMEOUT</code></li>
+     * <li>System Property: <code>net.connection.timeout</code></li>
      * </ul>
      */
-    public long netConnectionTimeout() {
-
-        return longVal(Name.of("net", "connection", "timeout"));
-    }
+    @ConfigurationProperty("net/connection/timeout")
+    long netConnectionTimeout();
 
     /**
-     * Network read timeout (in milliseconds).
+     * net/read/timeout
      * <ul>
-     *     <li>Environment variable: {@code NET_READ_TIMEOUT}</li>
-     *     <li>System property: {@code net.read.timeout}</li>
+     * <li>Environment Variable: <code>NET_READ_TIMEOUT</code></li>
+     * <li>System Property: <code>net.read.timeout</code></li>
      * </ul>
      */
-    public long netReadTimeout() {
-
-        return longVal(Name.of("net", "read", "timeout"));
-    }
+    @ConfigurationProperty("net/read/timeout")
+    long netReadTimeout();
 
     /**
-     * Running in "local mode".
+     * local/mode
      * <ul>
-     *     <li>Environment variable: {@code LOCAL_MODE}</li>
-     *     <li>System property: {@code local.mode}</li>
+     * <li>Environment Variable: <code>LOCAL_MODE</code></li>
+     * <li>System Property: <code>local.mode</code></li>
      * </ul>
      */
-    public boolean isLocalMode() {
-
-        return booleanVal(Name.of("local", "mode"));
-    }
+    @ConfigurationProperty("local/mode")
+    boolean isLocalMode();
 }
