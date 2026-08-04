@@ -13,8 +13,8 @@ include(
     "lena-config-api",
     "lena-config-ksp",
     "examples:common",
-    "examples:nested-config",
-    "examples:simple-config",
+    "examples:nested-config-java",
+    "examples:simple-config-java",
 )
 
 dependencyResolutionManagement {
