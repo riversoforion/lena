@@ -5,9 +5,6 @@ package com.riversoforion.lena.example
 
 import org.riversoforion.lena.config.ConfigurationProperties
 import org.riversoforion.lena.config.ConfigurationSource
-import org.riversoforion.lena.config.ConfigurationSources.forEnvironment
-import org.riversoforion.lena.config.ConfigurationSources.forSystemProperties
-import org.riversoforion.lena.config.ConfigurationSources.prioritized
 import org.riversoforion.lena.config.Namespace
 
 /**
@@ -16,7 +13,7 @@ import org.riversoforion.lena.config.Namespace
  */
 class ApplicationConfig(
     ns: Namespace = Namespace.root(),
-    backingSource: ConfigurationSource = prioritized(forEnvironment(), forSystemProperties()),
+    backingSource: ConfigurationSource = defaultConfigurationSource(),
 ) : ConfigurationProperties(backingSource, ns) {
 
     val service: ServiceConfig = ServiceConfig(backingSource, namespace.child("service"))

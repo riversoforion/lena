@@ -3,28 +3,37 @@
  */
 package com.riversoforion.lena.example
 
-import java.io.PrintStream
-
-class NestedConfigExample : ExampleApplication() {
+class NestedConfigExample {
 
     private val config = ApplicationConfig()
 
-    fun printConfig(out: PrintStream) {
-        out.printf("%30s = %s%n", "service.url", config.service.url)
-        out.printf("%30s = %s%n", "service.apiKey", config.service.apiKey)
-        out.printf("%30s = %s%n", "service.apiSecret", config.service.apiSecret)
-        out.printf("%30s = %s%n", "service.net.readTimeout", config.service.net.readTimeout)
-        out.printf("%30s = %s%n", "service.net.connectionTimeout", config.service.net.connectionTimeout)
-        out.printf("%30s = %s%n", "net.readTimeout", config.net.readTimeout)
-        out.printf("%30s = %s%n", "net.connectionTimeout", config.net.connectionTimeout)
-        out.printf("%30s = %s%n", "localMode", config.localMode)
+    fun run(args: Array<String>) {
+        println("=== Nested Configuration Example (Kotlin) ===")
+
+        if (args.contains("-h") || args.contains("--help")) {
+            printHelp()
+            return
+        }
+
+        printConfig()
     }
 
-    override fun printHelp(out: PrintStream) {
-        out.print(
+    private fun printConfig() {
+        println("${"service.url".padStart(35)} = ${config.service.url}")
+        println("${"service.apiKey".padStart(35)} = ${config.service.apiKey}")
+        println("${"service.apiSecret".padStart(35)} = ${config.service.apiSecret}")
+        println("${"service.net.readTimeout".padStart(35)} = ${config.service.net.readTimeout}")
+        println("${"service.net.connectionTimeout".padStart(35)} = ${config.service.net.connectionTimeout}")
+        println("${"net.readTimeout".padStart(35)} = ${config.net.readTimeout}")
+        println("${"net.connectionTimeout".padStart(35)} = ${config.net.connectionTimeout}")
+        println("${"localMode".padStart(35)} = ${config.localMode}")
+    }
+
+    private fun printHelp() {
+        println(
             """
             Demonstrates usage of nested ConfigurationProperties, composed via Kotlin
-            property delegates (val url: String by string("url")).
+            property delegates (val url: String by string("url")). (Kotlin/KMP)
 
             Run with environment variables or system properties set. The top-level `net` and the
             `service`-nested `net` are independent configuration properties and must each be
@@ -43,17 +52,8 @@ class NestedConfigExample : ExampleApplication() {
             """.trimIndent()
         )
     }
+}
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            println("=== Nested Configuration Example ===")
-            val example = NestedConfigExample()
-            if (example.isHelpRequested(args)) {
-                example.printHelp(System.out)
-                return
-            }
-            example.printConfig(System.out)
-        }
-    }
+fun main(args: Array<String>) {
+    NestedConfigExample().run(args)
 }

@@ -15,6 +15,8 @@ include(
     "examples:common",
     "examples:nested-config-java",
     "examples:simple-config-java",
+    "examples:nested-config-kotlin",
+    "examples:simple-config-kotlin",
 )
 
 dependencyResolutionManagement {
