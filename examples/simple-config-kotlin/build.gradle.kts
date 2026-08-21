@@ -53,6 +53,7 @@ kotlin {
 }
 
 dependencies {
+    add("kspCommonMainMetadata", project(":lena-config-ksp"))
     add("kspJvm", project(":lena-config-ksp"))
     add("kspMacosArm64", project(":lena-config-ksp"))
     add("kspLinuxX64", project(":lena-config-ksp"))

@@ -25,6 +25,13 @@ public class ApplicationConfig extends ConfigurationProperties {
         ));
     }
 
+    public ApplicationConfig(Namespace ns) {
+        this(ns, ConfigurationSources.prioritized(
+            ConfigurationSources.forEnvironment(),
+            ConfigurationSources.forSystemProperties()
+        ));
+    }
+
     public ApplicationConfig(Namespace ns, ConfigurationSource source) {
         super(source, ns);
         this.service = new ServiceConfig(source, getNamespace().child("service"));

@@ -36,7 +36,7 @@ class NestedConfigTest {
         assertThat(config.service.apiSecret).isEqualTo("secret")
         assertThat(config.net.connectionTimeout).isEqualTo(1_000L)
         assertThat(config.net.readTimeout).isEqualTo(5_000L)
-        assertThat(config.localMode).isTrue()
+        assertThat(config.isLocalMode).isTrue()
     }
 
     @Test
@@ -54,7 +54,7 @@ class NestedConfigTest {
         assertThat(config.service.apiSecret).isEqualTo("secret")
         assertThat(config.net.connectionTimeout).isEqualTo(1_000L)
         assertThat(config.net.readTimeout).isEqualTo(5_000L)
-        assertThat(config.localMode).isTrue()
+        assertThat(config.isLocalMode).isTrue()
     }
 
     @Test
@@ -77,6 +77,6 @@ class NestedConfigTest {
         assertThat(config.service.apiSecret).isEqualTo("a-different-secret")
         assertThat(config.net.connectionTimeout).isEqualTo(2_000L)
         assertThat(config.net.readTimeout).isEqualTo(5_000L)
-        assertThat(config.localMode).isTrue()
+        assertThat(config.isLocalMode).isTrue()
     }
 }
