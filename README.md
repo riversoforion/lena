@@ -128,7 +128,7 @@ public class AppConfig extends ConfigurationProperties {
 }
 ```
 
-Full worked examples (including nested composition) live under [`examples/`](examples/).
+Full worked examples (including nested composition) live under [`examples/`](./examples).
 
 ## Running the Examples
 
@@ -175,15 +175,15 @@ Source is organized as Kotlin Multiplatform source sets:
 - `jvmMain` — JVM-specific pieces (`System.getProperties()` support, `java.text.Normalizer`)
 - `nativeMain` — native-specific pieces (POSIX `getenv`, best-effort string normalization)
 - `commonTest` / `jvmTest` / `nativeTest` — mirrored test source sets; see
-  [`CLAUDE.md`](CLAUDE.md#testing) for the testing strategy (why some tests live in one source set
+  [`AGENTS.md`](AGENTS.md#testing) for the testing strategy (why some tests live in one source set
   and not another).
 
 Convention plugins in `buildSrc/src/main/kotlin/` (`lena.kmp-library`, `lena.examples`) hold the
-shared build configuration — see [`CLAUDE.md`](CLAUDE.md#convention-plugins-buildsrc) for details.
+shared build configuration — see [`AGENTS.md`](AGENTS.md#convention-plugins-buildsrc) for details.
 
 ## Documentation
 
-- [`CLAUDE.md`](CLAUDE.md) — architecture reference: core types, name/key resolution, platform
+- [`AGENTS.md`](AGENTS.md) — architecture reference: core types, name/key resolution, platform
   differences, testing strategy
 - [`docs/kotlin-migration-plan.md`](docs/kotlin-migration-plan.md) — the Java → Kotlin Multiplatform
   migration plan, phase history, and forward roadmap (KSP annotation processing, type coercion,

@@ -160,11 +160,11 @@ Key Java→Kotlin substitutions (the heart of the work):
   `ConfigurationProperties`, `ValueConverter`, `DefaultValueConverter`, `resolvers/*`.
 - Delete: `ConfigurationPropertiesRegistry`, old `lena-config-annotation-processor/` tree,
   the three Java convention plugins.
-- Rework `CLAUDE.md` (see below).
+- Rework `../AGENTS.md` (see below).
 
 ## CLAUDE.md rework (do as part of implementation)
 
-The current `CLAUDE.md` describes the Java/`Optional`/registry design that this overhaul removes —
+The current `../AGENTS.md` describes the Java/`Optional`/registry design that this overhaul removes —
 leaving it will actively mislead future sessions. Replace it to describe: KMP layout
 (`commonMain`/`jvmMain`/`nativeMain`), desktop-tier targets, Kotlin 2.4 + Gradle 9 + KSP, the
 property-delegate API, `String?`-not-`Optional`, expect/actual seams (env + normalization), and
