@@ -1,11 +1,38 @@
 [versions]
+kotlin = "2.4.0"
+# KSP2 versioning dropped the "<kotlin>-<ksp>" prefix scheme as of 2.3.0; 2.3.9 is the latest
+# published release and is not yet built specifically against Kotlin 2.4.0, but the KSP2 API
+# surface used here (SymbolProcessor/-Provider) is stable across recent Kotlin versions.
+ksp = "2.3.9"
+detekt = "2.0.0-alpha.5"
 junit = "5.11.0"
+junitPlatform = "1.11.0"
 assertj = "3.26.3"
 mockito = "5.13.0"
 systemStubs = "2.1.6"
+kotlinpoet = "2.0.0"
 
 [libraries]
-testing-junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
-testing-assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
-testing-mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
-testing-systemStubs = { group = "uk.org.webcompere", name = "system-stubs-jupiter", version.ref = "systemStubs" }
+# JVM-only test stack (jvmTest source set)
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+# Gradle 9's test task requires the platform launcher on the runtime classpath explicitly.
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatform" }
+assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
+systemStubs-jupiter = { group = "uk.org.webcompere", name = "system-stubs-jupiter", version.ref = "systemStubs" }
+
+# lena-config-ksp: KSP processor API (compileOnly dependency for the processor module)
+ksp-symbol-processing-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+
+# Allows buildSrc convention plugins to apply the Kotlin Multiplatform plugin
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+# Allows buildSrc convention plugins to apply Detekt
+detekt-gradlePlugin = { group = "dev.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

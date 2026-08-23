@@ -1,41 +1,27 @@
 /*
- * Copyright (c) 2024. Eric McIntyre / Rivers of Orion
+ * Copyright (c) 2024-2026. Eric McIntyre / Rivers of Orion
  */
 
-import dev.aga.gradle.versioncatalogs.Generator.generate
-import dev.aga.gradle.versioncatalogs.GeneratorConfig
-
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("2.0.0-beta.2")
+    // Resolves/downloads JDK toolchains (e.g. JDK 21) on demand.
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
 
 rootProject.name = "lena"
 include(
     "lena-config",
-    "lena-config-annotation-processor",
+    "lena-config-api",
+    "lena-config-ksp",
     "examples:common",
-    "examples:simple-config",
-    "examples:nested-config",
+    "examples:nested-config-java",
+    "examples:simple-config-java",
+    "examples:nested-config-kotlin",
+    "examples:simple-config-kotlin",
 )
 
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
-    }
-    versionCatalogs {
-        // Testing
-        generate("junitPlatform") {
-            from(toml("testing-junit-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-        }
-        generate("assertJPlatform") {
-            from(toml("testing-assertj-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-        }
-        generate("mockitoPlatform") {
-            from(toml("testing-mockito-bom"))
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-        }
     }
 }

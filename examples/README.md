@@ -1,7 +1,7 @@
 # Lena Examples
 
-This is a collection of examples demonstrating how to use the Lena libraries. Each subproject is a standalone CLI that illustrates how one or more of the 
-libraries can be used in a program. Most of them are small and targeted at a particular library or feature, though some may show how to integrate several 
+This is a collection of examples demonstrating how to use the Lena libraries. Each subproject is a standalone CLI that illustrates how one or more of the
+libraries can be used in a program. Most of them are small and targeted at a particular library or feature, though some may show how to integrate several
 together.
 
 ## Running from Gradle
@@ -28,6 +28,16 @@ properties will be passed to the example program. The following will make `this.
 ./gradlew examples:some-example:exec -Dthis.sys.prop="this system property" -Pthis.proj.prop=250
 ```
 
+### Getting help
+
+Every example accepts `-h`/`--help` and prints a description of its supported configuration
+properties instead of running. Pass it through to the example program with Gradle's `--args`
+option:
+
+```shell
+./gradlew examples:some-example:exec --args="--help"
+```
+
 ## Flag values
 
 When a configuration value is exposed as a boolean flag, the following _case-insensitive_ values can be supplied:
@@ -48,5 +58,14 @@ When a configuration value is exposed as a boolean flag, the following _case-ins
 
 - `./simple-config`
 - `com.riversoforion.lena.example.SimpleConfigExample`
+- Java
 
 Demonstrates a very basic usage of `lena-config` to expose environment variables and/or system properties as a type-safe configuration object.
+
+### Nested Config
+
+- `./nested-config`
+- `com.riversoforion.lena.example.NestedConfigExample`
+- Kotlin
+
+Demonstrates `lena-config`'s Kotlin property-delegate API (`val url: String by string("url")`) and explicit nested configuration composition — a parent `ConfigurationProperties` constructs and holds child instances directly, sharing one backing `ConfigurationSource` rather than relying on a global registry.
