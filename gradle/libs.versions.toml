@@ -1,16 +1,16 @@
 [versions]
-kotlin = "2.4.0"
-# KSP2 versioning dropped the "<kotlin>-<ksp>" prefix scheme as of 2.3.0; 2.3.9 is the latest
-# published release and is not yet built specifically against Kotlin 2.4.0, but the KSP2 API
+kotlin = "2.4.10"
+# KSP2 versioning dropped the "<kotlin>-<ksp>" prefix scheme as of 2.3.0; 2.3.11 is the latest
+# published release and is not yet built specifically against Kotlin 2.4.x, but the KSP2 API
 # surface used here (SymbolProcessor/-Provider) is stable across recent Kotlin versions.
-ksp = "2.3.9"
-detekt = "2.0.0-alpha.5"
-junit = "5.11.0"
-junitPlatform = "1.11.0"
-assertj = "3.26.3"
-mockito = "5.13.0"
-systemStubs = "2.1.6"
-kotlinpoet = "2.0.0"
+ksp = "2.3.11"
+detekt = "2.0.0-alpha.6"
+junit = "5.14.4"
+junitPlatform = "1.14.4"
+assertj = "3.27.7"
+mockito = "5.23.0"
+systemStubs = "2.1.8"
+kotlinpoet = "2.3.0"
 
 [libraries]
 # JVM-only test stack (jvmTest source set)
