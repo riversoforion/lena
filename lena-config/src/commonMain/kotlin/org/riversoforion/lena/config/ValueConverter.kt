@@ -3,7 +3,10 @@
  */
 package org.riversoforion.lena.config
 
-/** Converts raw string values to typed primitives. */
+import kotlin.reflect.KClass
+
+/** Converts raw string values to typed primitives and complex types. */
+@Suppress("TooManyFunctions")
 public interface ValueConverter {
     public fun toBoolean(value: String?): Boolean
     public fun toShort(value: String?): Short
@@ -11,4 +14,9 @@ public interface ValueConverter {
     public fun toLong(value: String?): Long
     public fun toFloat(value: String?): Float
     public fun toDouble(value: String?): Double
+
+    // Complex types
+    public fun <T : Any> toEnum(value: String?, klass: KClass<T>): T
+    public fun <T : Any> convert(value: String?, converter: (String) -> T): T
 }
+

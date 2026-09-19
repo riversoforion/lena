@@ -5,6 +5,8 @@ package org.riversoforion.lena.config
 
 import kotlin.jvm.JvmOverloads
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
+import kotlin.time.Duration
 
 /**
  * Abstract base class for user-defined configuration beans.
@@ -181,5 +183,170 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
     protected fun double(vararg segments: String, default: Double): ReadOnlyProperty<Any?, Double> {
         val name = Name.of(*segments)
         return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toDouble(it) } ?: default }
+    }
+
+    // Lazy defaults for forward references and deferred evaluation
+    protected fun long(vararg segments: String, default: () -> Long): ReadOnlyProperty<Any?, Long> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toLong(it) } ?: default() }
+    }
+
+    protected fun int(vararg segments: String, default: () -> Int): ReadOnlyProperty<Any?, Int> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toInt(it) } ?: default() }
+    }
+
+    protected fun string(vararg segments: String, default: () -> String): ReadOnlyProperty<Any?, String> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> sourceVal(name) ?: default() }
+    }
+
+    protected fun boolean(vararg segments: String, default: () -> Boolean): ReadOnlyProperty<Any?, Boolean> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toBoolean(it) } ?: default() }
+    }
+
+    // -------------------------------------------------------------------------
+    // Complex type accessors (Java API)
+    // -------------------------------------------------------------------------
+
+    protected fun <T : Any> enumVal(name: Name, klass: KClass<T>): T =
+        converter.toEnum(stringVal(name), klass)
+
+    protected fun <T : Any> enumVal(
+        name: Name,
+        klass: KClass<T>,
+        default: T,
+    ): T = sourceVal(name)?.let { converter.toEnum(it, klass) }
+        ?: default
+
+    protected fun durationVal(name: Name): Duration =
+        (converter as? DefaultValueConverter)?.toDuration(stringVal(name))
+            ?: throw UnsupportedOperationException("Duration conversion requires DefaultValueConverter")
+
+    protected fun durationVal(name: Name, default: Duration): Duration =
+        sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toDuration(it) } ?: default
+
+    protected fun intListVal(name: Name): List<Int> =
+        (converter as? DefaultValueConverter)?.toIntList(sourceVal(name))
+            ?: throw UnsupportedOperationException("IntList conversion requires DefaultValueConverter")
+
+    protected fun stringListVal(name: Name): List<String> =
+        (converter as? DefaultValueConverter)?.toStringList(sourceVal(name))
+            ?: throw UnsupportedOperationException("StringList conversion requires DefaultValueConverter")
+
+    protected fun stringSetVal(name: Name): Set<String> =
+        (converter as? DefaultValueConverter)?.toStringSet(sourceVal(name))
+            ?: throw UnsupportedOperationException("StringSet conversion requires DefaultValueConverter")
+
+    protected fun stringMapVal(name: Name): Map<String, String> =
+        (converter as? DefaultValueConverter)?.toStringMap(sourceVal(name))
+            ?: throw UnsupportedOperationException("StringMap conversion requires DefaultValueConverter")
+
+    protected fun <T : Any> convertVal(name: Name, fn: (String) -> T): T =
+        fn(stringVal(name))
+
+    protected fun <T : Any> convertVal(name: Name, default: T, fn: (String) -> T): T =
+        sourceVal(name)?.let { fn(it) } ?: default
+
+    // -------------------------------------------------------------------------
+    // Complex type delegates (Kotlin API)
+    // -------------------------------------------------------------------------
+
+    protected inline fun <reified T : Enum<T>> enum(vararg segments: String): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> enumVal(name, T::class) }
+    }
+
+    protected inline fun <reified T : Enum<T>> enum(vararg segments: String, default: T): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> enumVal(name, T::class, default) }
+    }
+
+    protected fun duration(vararg segments: String): ReadOnlyProperty<Any?, Duration> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> durationVal(name) }
+    }
+
+    protected fun duration(vararg segments: String, default: Duration): ReadOnlyProperty<Any?, Duration> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> durationVal(name, default) }
+    }
+
+    protected fun intList(vararg segments: String): ReadOnlyProperty<Any?, List<Int>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> intListVal(name) }
+    }
+
+    protected fun intList(
+        vararg segments: String,
+        default: List<Int>,
+    ): ReadOnlyProperty<Any?, List<Int>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ ->
+            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toIntList(it) } ?: default
+        }
+    }
+
+    protected fun stringList(vararg segments: String): ReadOnlyProperty<Any?, List<String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> stringListVal(name) }
+    }
+
+    protected fun stringList(
+        vararg segments: String,
+        default: List<String>,
+    ): ReadOnlyProperty<Any?, List<String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ ->
+            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringList(it) } ?: default
+        }
+    }
+
+    protected fun stringSet(vararg segments: String): ReadOnlyProperty<Any?, Set<String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> stringSetVal(name) }
+    }
+
+    protected fun stringSet(
+        vararg segments: String,
+        default: Set<String>,
+    ): ReadOnlyProperty<Any?, Set<String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ ->
+            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringSet(it) } ?: default
+        }
+    }
+
+    protected fun stringMap(vararg segments: String): ReadOnlyProperty<Any?, Map<String, String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> stringMapVal(name) }
+    }
+
+    protected fun stringMap(
+        vararg segments: String,
+        default: Map<String, String>,
+    ): ReadOnlyProperty<Any?, Map<String, String>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ ->
+            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringMap(it) } ?: default
+        }
+    }
+
+    protected fun <T : Any> converted(
+        vararg segments: String,
+        fn: (String) -> T,
+    ): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> convertVal(name, fn) }
+    }
+
+    protected fun <T : Any> converted(
+        vararg segments: String,
+        default: T,
+        fn: (String) -> T,
+    ): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> convertVal(name, default, fn) }
     }
 }
