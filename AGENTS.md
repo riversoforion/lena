@@ -11,8 +11,8 @@ lives in `commonMain` and targets JVM plus desktop-tier native (macOS, Linux, Wi
 interop on the JVM is a first-class concern (`@JvmStatic`, `@JvmOverloads`, protected accessor
 methods alongside Kotlin property delegates).
 
-See `docs/kotlin-migration-plan.md` for the full migration plan, phase history, and forward
-roadmap (KSP annotation processor, type coercion, validation/observability).
+See `docs/migration-plan/README.md` for the full migration plan, one doc per phase with status
+headers (KSP annotation processor, type coercion, validation/observability).
 
 ## Source Control
 

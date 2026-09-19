@@ -46,7 +46,7 @@ public class AppConfig extends ConfigurationProperties {
 | Module | Status | Purpose |
 | --- | --- | --- |
 | `lena-config` | **Active** | Core configuration library (Kotlin Multiplatform: `commonMain`/`jvmMain`/`nativeMain`) |
-| `lena-config-ksp` | Scaffold only | KSP module for `@ExternalConfiguration` processing — compiles and wires in, generates nothing yet. **Note:** KSP is a `kotlinc`-only mechanism; pure-Java, `javac`-only builds (no Kotlin Gradle plugin) will not be able to use it — see [`docs/kotlin-migration-plan.md`](docs/kotlin-migration-plan.md#implementation-ksp-processor) |
+| `lena-config-ksp` | Scaffold only | KSP module for `@ExternalConfiguration` processing — compiles and wires in, generates nothing yet. **Note:** KSP is a `kotlinc`-only mechanism; pure-Java, `javac`-only builds (no Kotlin Gradle plugin) will not be able to use it — see [`docs/migration-plan/phase-5-ksp-processor.md`](docs/migration-plan/phase-5-ksp-processor.md#implementation) |
 | `examples/common`, `examples/simple-config`, `examples/nested-config` | **Active** | Runnable usage examples (see below) |
 | `lena-config-aws-secretsmanager`, `lena-config-cache`, `lena-config-consul`, `lena-config-dotenv`, `lena-config-etcd`, `lena-config-sql`, `lena-config-zookeeper`, `lena-junit5` | Placeholder | Empty — not yet implemented |
 
@@ -185,8 +185,8 @@ shared build configuration — see [`AGENTS.md`](AGENTS.md#convention-plugins-bu
 
 - [`AGENTS.md`](AGENTS.md) — architecture reference: core types, name/key resolution, platform
   differences, testing strategy
-- [`docs/kotlin-migration-plan.md`](docs/kotlin-migration-plan.md) — the Java → Kotlin Multiplatform
-  migration plan, phase history, and forward roadmap (KSP annotation processing, type coercion,
+- [`docs/migration-plan/`](docs/migration-plan/README.md) — the Java → Kotlin Multiplatform
+  migration plan, one doc per phase with status headers (KSP annotation processing, type coercion,
   validation/observability)
 - [`examples/README.md`](examples/README.md) — example catalog and usage
 
