@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-@Disabled("Requires KSP generation - Phase 5")
 class KspGenerationTest {
 
     private class FakeConfigurationSource(private val values: Map<String, String>) : ConfigurationSource {
