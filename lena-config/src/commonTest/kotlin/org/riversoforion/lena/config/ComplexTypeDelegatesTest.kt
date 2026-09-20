@@ -9,6 +9,8 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class ComplexTypeDelegatesTest {
 
@@ -32,7 +34,31 @@ class ComplexTypeDelegatesTest {
         val config: Map<String, String> by stringMap("config")
         val customValue: Int by converted("custom") { it.toInt() * 2 }
         val customValueWithDefault: Int by converted("custom-missing", default = 42) { it.toInt() * 2 }
+
+        @OptIn(ExperimentalUuidApi::class)
+        val id: Uuid by uuid("id")
+
+        @OptIn(ExperimentalUuidApi::class)
+        val idWithDefault: Uuid by uuid("id-missing", default = Uuid.parse("00000000-0000-0000-0000-000000000000"))
+
+        val timeouts: List<Duration> by durationList("timeouts")
+        val timeoutsWithDefault: List<Duration> by durationList(
+            "timeouts-missing",
+            default = listOf(1.toDuration(DurationUnit.SECONDS))
+        )
+
+        init {
+            converter.register<Point> { s ->
+                val (x, y) = s.split(",").map { it.trim().toInt() }
+                Point(x, y)
+            }
+        }
+
+        val point: Point by custom("point")
+        val pointWithDefault: Point by custom("point-missing", default = Point(0, 0))
     }
+
+    private data class Point(val x: Int, val y: Int)
 
     @Test
     fun duration_ResolvesValue() {
@@ -115,5 +141,58 @@ class ComplexTypeDelegatesTest {
             val items: List<Int> by intList("missing")
         }
         assertEquals(emptyList(), config.items)
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun uuid_ResolvesValue() {
+        val source = FakeConfigurationSource(
+            mapOf("id" to "550e8400-e29b-41d4-a716-446655440000")
+        )
+        val config = ComplexTypeConfig(source)
+        assertEquals(Uuid.parse("550e8400-e29b-41d4-a716-446655440000"), config.id)
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun uuid_UsesDefault() {
+        val source = FakeConfigurationSource(emptyMap())
+        val config = ComplexTypeConfig(source)
+        assertEquals(Uuid.parse("00000000-0000-0000-0000-000000000000"), config.idWithDefault)
+    }
+
+    @Test
+    fun durationList_ResolvesCommaSeparatedValues() {
+        val source = FakeConfigurationSource(mapOf("timeouts" to "5s,2m,1h"))
+        val config = ComplexTypeConfig(source)
+        assertEquals(
+            listOf(
+                5.toDuration(DurationUnit.SECONDS),
+                2.toDuration(DurationUnit.MINUTES),
+                1.toDuration(DurationUnit.HOURS),
+            ),
+            config.timeouts,
+        )
+    }
+
+    @Test
+    fun durationList_UsesDefault() {
+        val source = FakeConfigurationSource(emptyMap())
+        val config = ComplexTypeConfig(source)
+        assertEquals(listOf(1.toDuration(DurationUnit.SECONDS)), config.timeoutsWithDefault)
+    }
+
+    @Test
+    fun custom_UsesRegisteredConverter() {
+        val source = FakeConfigurationSource(mapOf("point" to "3, 4"))
+        val config = ComplexTypeConfig(source)
+        assertEquals(Point(3, 4), config.point)
+    }
+
+    @Test
+    fun custom_UsesDefaultWhenMissing() {
+        val source = FakeConfigurationSource(emptyMap())
+        val config = ComplexTypeConfig(source)
+        assertEquals(Point(0, 0), config.pointWithDefault)
     }
 }

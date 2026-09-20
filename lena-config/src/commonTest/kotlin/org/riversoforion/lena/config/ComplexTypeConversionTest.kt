@@ -10,6 +10,8 @@ import kotlin.test.assertNull
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class ComplexTypeConversionTest {
 
@@ -135,6 +137,45 @@ class ComplexTypeConversionTest {
     fun convert_ThrowsOnNull() {
         assertFailsWith<IllegalArgumentException> {
             converter.convert<Int>(null) { it.toInt() }
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun toUuid_ParsesValidUuid() {
+        val result = converter.toUuid("550e8400-e29b-41d4-a716-446655440000")
+        assertEquals(Uuid.parse("550e8400-e29b-41d4-a716-446655440000"), result)
+    }
+
+    @Test
+    fun toUuid_ThrowsOnNull() {
+        assertFailsWith<IllegalArgumentException> {
+            converter.toUuid(null)
+        }
+    }
+
+    @Test
+    fun toUuid_ThrowsOnInvalidFormat() {
+        assertFailsWith<IllegalArgumentException> {
+            converter.toUuid("not-a-uuid")
+        }
+    }
+
+    @Test
+    fun register_AndToRegistered_RoundTrips() {
+        data class Point(val x: Int, val y: Int)
+        converter.register(Point::class) { s ->
+            val (x, y) = s.split(":").map { it.toInt() }
+            Point(x, y)
+        }
+        val result = converter.toRegistered("3:4", Point::class)
+        assertEquals(Point(3, 4), result)
+    }
+
+    @Test
+    fun toRegistered_ThrowsWhenNothingRegistered() {
+        assertFailsWith<IllegalStateException> {
+            converter.toRegistered("anything", String::class)
         }
     }
 }

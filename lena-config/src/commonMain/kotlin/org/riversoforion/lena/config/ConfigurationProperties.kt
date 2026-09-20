@@ -7,6 +7,8 @@ import kotlin.jvm.JvmOverloads
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.time.Duration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Abstract base class for user-defined configuration beans.
@@ -43,7 +45,8 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
     private val source: ConfigurationSource,
     public val namespace: Namespace = Namespace.root(),
 ) {
-    private val converter: ValueConverter = createConverter()
+    /** Exposed for subclasses that need [ValueConverter.register] — see [converted] and [custom]. */
+    protected val converter: ValueConverter = createConverter()
 
     protected open fun createConverter(): ValueConverter = DefaultValueConverter()
 
@@ -220,34 +223,37 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
     ): T = sourceVal(name)?.let { converter.toEnum(it, klass) }
         ?: default
 
-    protected fun durationVal(name: Name): Duration =
-        (converter as? DefaultValueConverter)?.toDuration(stringVal(name))
-            ?: throw UnsupportedOperationException("Duration conversion requires DefaultValueConverter")
+    protected fun durationVal(name: Name): Duration = converter.toDuration(stringVal(name))
 
     protected fun durationVal(name: Name, default: Duration): Duration =
-        sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toDuration(it) } ?: default
+        sourceVal(name)?.let { converter.toDuration(it) } ?: default
 
-    protected fun intListVal(name: Name): List<Int> =
-        (converter as? DefaultValueConverter)?.toIntList(sourceVal(name))
-            ?: throw UnsupportedOperationException("IntList conversion requires DefaultValueConverter")
+    protected fun intListVal(name: Name): List<Int> = converter.toIntList(sourceVal(name))
 
-    protected fun stringListVal(name: Name): List<String> =
-        (converter as? DefaultValueConverter)?.toStringList(sourceVal(name))
-            ?: throw UnsupportedOperationException("StringList conversion requires DefaultValueConverter")
+    protected fun stringListVal(name: Name): List<String> = converter.toStringList(sourceVal(name))
 
-    protected fun stringSetVal(name: Name): Set<String> =
-        (converter as? DefaultValueConverter)?.toStringSet(sourceVal(name))
-            ?: throw UnsupportedOperationException("StringSet conversion requires DefaultValueConverter")
+    protected fun stringSetVal(name: Name): Set<String> = converter.toStringSet(sourceVal(name))
 
-    protected fun stringMapVal(name: Name): Map<String, String> =
-        (converter as? DefaultValueConverter)?.toStringMap(sourceVal(name))
-            ?: throw UnsupportedOperationException("StringMap conversion requires DefaultValueConverter")
+    protected fun stringMapVal(name: Name): Map<String, String> = converter.toStringMap(sourceVal(name))
+
+    @OptIn(ExperimentalUuidApi::class)
+    protected fun uuidVal(name: Name): Uuid = converter.toUuid(stringVal(name))
+
+    @OptIn(ExperimentalUuidApi::class)
+    protected fun uuidVal(name: Name, default: Uuid): Uuid =
+        sourceVal(name)?.let { converter.toUuid(it) } ?: default
+
+    protected fun durationListVal(name: Name): List<Duration> =
+        converter.toStringList(sourceVal(name)).map { converter.toDuration(it) }
+
+    protected fun durationListVal(name: Name, default: List<Duration>): List<Duration> =
+        sourceVal(name)?.let { s -> converter.toStringList(s).map { converter.toDuration(it) } } ?: default
 
     protected fun <T : Any> convertVal(name: Name, fn: (String) -> T): T =
-        fn(stringVal(name))
+        converter.convert(stringVal(name), fn)
 
     protected fun <T : Any> convertVal(name: Name, default: T, fn: (String) -> T): T =
-        sourceVal(name)?.let { fn(it) } ?: default
+        sourceVal(name)?.let { converter.convert(it, fn) } ?: default
 
     // -------------------------------------------------------------------------
     // Complex type delegates (Kotlin API)
@@ -273,6 +279,31 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
         return ReadOnlyProperty { _, _ -> durationVal(name, default) }
     }
 
+    protected fun durationList(vararg segments: String): ReadOnlyProperty<Any?, List<Duration>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> durationListVal(name) }
+    }
+
+    protected fun durationList(
+        vararg segments: String,
+        default: List<Duration>,
+    ): ReadOnlyProperty<Any?, List<Duration>> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> durationListVal(name, default) }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    protected fun uuid(vararg segments: String): ReadOnlyProperty<Any?, Uuid> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> uuidVal(name) }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    protected fun uuid(vararg segments: String, default: Uuid): ReadOnlyProperty<Any?, Uuid> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> uuidVal(name, default) }
+    }
+
     protected fun intList(vararg segments: String): ReadOnlyProperty<Any?, List<Int>> {
         val name = Name.of(*segments)
         return ReadOnlyProperty { _, _ -> intListVal(name) }
@@ -283,9 +314,7 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
         default: List<Int>,
     ): ReadOnlyProperty<Any?, List<Int>> {
         val name = Name.of(*segments)
-        return ReadOnlyProperty { _, _ ->
-            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toIntList(it) } ?: default
-        }
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toIntList(it) } ?: default }
     }
 
     protected fun stringList(vararg segments: String): ReadOnlyProperty<Any?, List<String>> {
@@ -298,9 +327,7 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
         default: List<String>,
     ): ReadOnlyProperty<Any?, List<String>> {
         val name = Name.of(*segments)
-        return ReadOnlyProperty { _, _ ->
-            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringList(it) } ?: default
-        }
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toStringList(it) } ?: default }
     }
 
     protected fun stringSet(vararg segments: String): ReadOnlyProperty<Any?, Set<String>> {
@@ -313,9 +340,7 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
         default: Set<String>,
     ): ReadOnlyProperty<Any?, Set<String>> {
         val name = Name.of(*segments)
-        return ReadOnlyProperty { _, _ ->
-            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringSet(it) } ?: default
-        }
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toStringSet(it) } ?: default }
     }
 
     protected fun stringMap(vararg segments: String): ReadOnlyProperty<Any?, Map<String, String>> {
@@ -328,9 +353,7 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
         default: Map<String, String>,
     ): ReadOnlyProperty<Any?, Map<String, String>> {
         val name = Name.of(*segments)
-        return ReadOnlyProperty { _, _ ->
-            sourceVal(name)?.let { (converter as? DefaultValueConverter)?.toStringMap(it) } ?: default
-        }
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toStringMap(it) } ?: default }
     }
 
     protected fun <T : Any> converted(
@@ -348,5 +371,20 @@ public abstract class ConfigurationProperties @JvmOverloads constructor(
     ): ReadOnlyProperty<Any?, T> {
         val name = Name.of(*segments)
         return ReadOnlyProperty { _, _ -> convertVal(name, default, fn) }
+    }
+
+    /**
+     * Reads a type registered via [ValueConverter.register] — e.g. in an `init` block:
+     * `converter.register<CustomType> { CustomType.parse(it) }`, then
+     * `val custom: CustomType by custom("key")`.
+     */
+    protected inline fun <reified T : Any> custom(vararg segments: String): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> converter.toRegistered<T>(stringVal(name)) }
+    }
+
+    protected inline fun <reified T : Any> custom(vararg segments: String, default: T): ReadOnlyProperty<Any?, T> {
+        val name = Name.of(*segments)
+        return ReadOnlyProperty { _, _ -> sourceVal(name)?.let { converter.toRegistered<T>(it) } ?: default }
     }
 }

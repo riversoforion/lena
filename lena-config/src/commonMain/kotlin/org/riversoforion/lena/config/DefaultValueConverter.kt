@@ -7,6 +7,8 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Default [ValueConverter] implementation.
@@ -44,22 +46,22 @@ public open class DefaultValueConverter : ValueConverter {
         if (value == null) throw IllegalArgumentException("null enum value")
         else platformEnumLookup(value, klass)
 
-    public fun toDuration(value: String?): Duration =
+    override fun toDuration(value: String?): Duration =
         if (value == null) throw IllegalArgumentException("null duration")
         else parseDuration(value)
 
-    public fun toIntList(value: String?): List<Int> =
+    override fun toIntList(value: String?): List<Int> =
         if (value.isNullOrBlank()) emptyList()
         else value.split(",").map { it.trim().toInt() }
 
-    public fun toStringList(value: String?): List<String> =
+    override fun toStringList(value: String?): List<String> =
         if (value.isNullOrBlank()) emptyList()
         else value.split(",").map { it.trim() }
 
-    public fun toStringSet(value: String?): Set<String> =
+    override fun toStringSet(value: String?): Set<String> =
         toStringList(value).toSet()
 
-    public fun toStringMap(value: String?): Map<String, String> {
+    override fun toStringMap(value: String?): Map<String, String> {
         if (value.isNullOrBlank()) return emptyMap()
         return value.split(",").associate { pair ->
             val parts = pair.split("=", limit = 2)
@@ -68,9 +70,28 @@ public open class DefaultValueConverter : ValueConverter {
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    override fun toUuid(value: String?): Uuid =
+        if (value == null) throw IllegalArgumentException("null uuid")
+        else Uuid.parse(value)
+
     override fun <T : Any> convert(value: String?, converter: (String) -> T): T =
         if (value == null) throw IllegalArgumentException("null value")
         else converter(value)
+
+    private val registry: MutableMap<KClass<*>, (String) -> Any> = mutableMapOf()
+
+    override fun <T : Any> register(klass: KClass<T>, fn: (String) -> T) {
+        registry[klass] = fn
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> toRegistered(value: String?, klass: KClass<T>): T {
+        if (value == null) throw IllegalArgumentException("null value")
+        val fn = registry[klass] as? (String) -> T
+            ?: throw IllegalStateException("No converter registered for ${klass.simpleName}")
+        return fn(value)
+    }
 
     private fun parseDuration(value: String): Duration {
         val trimmed = value.trim()
