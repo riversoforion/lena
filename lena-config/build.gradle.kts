@@ -12,13 +12,16 @@ kotlin {
         commonMain.dependencies {
             api(project(":lena-config-api"))
         }
-        jvmTest.dependencies {
-            implementation(libs.junit.jupiter)
-            implementation(libs.assertj.core)
-            implementation(libs.mockito.junit.jupiter)
-            implementation(libs.systemStubs.jupiter)
-            runtimeOnly(libs.junit.jupiter.engine)
-            runtimeOnly(libs.junit.platform.launcher)
+        jvmTest {
+            kotlin.srcDir("build/generated/ksp/jvm/jvmTest/kotlin")
+            dependencies {
+                implementation(libs.junit.jupiter)
+                implementation(libs.assertj.core)
+                implementation(libs.mockito.junit.jupiter)
+                implementation(libs.systemStubs.jupiter)
+                runtimeOnly(libs.junit.jupiter.engine)
+                runtimeOnly(libs.junit.platform.launcher)
+            }
         }
     }
 }
