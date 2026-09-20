@@ -173,6 +173,38 @@ private class AlwaysTrueConverter : ValueConverter {
     override fun toLong(value: String?): Long = 99L
     override fun toFloat(value: String?): Float = 99f
     override fun toDouble(value: String?): Double = 99.0
+
+    override fun <T : Any> toEnum(value: String?, klass: kotlin.reflect.KClass<T>): T =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun toDuration(value: String?): kotlin.time.Duration =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun toIntList(value: String?): List<Int> =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun toStringList(value: String?): List<String> =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun toStringSet(value: String?): Set<String> =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun toStringMap(value: String?): Map<String, String> =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+    override fun toUuid(value: String?): kotlin.uuid.Uuid =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun <T : Any> convert(value: String?, converter: (String) -> T): T =
+        throw UnsupportedOperationException("Not implemented in test")
+
+    override fun <T : Any> register(klass: kotlin.reflect.KClass<T>, fn: (String) -> T) {
+        throw UnsupportedOperationException("Not implemented in test")
+    }
+
+    override fun <T : Any> toRegistered(value: String?, klass: kotlin.reflect.KClass<T>): T =
+        throw UnsupportedOperationException("Not implemented in test")
 }
 
 private class CustomConverterConfig(source: ConfigurationSource) : ConfigurationProperties(source) {
